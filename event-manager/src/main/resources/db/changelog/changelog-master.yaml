@@ -1,3 +1,5 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/changesets/0001-starter-baseline.yaml
+      file: db/changelog/changesets/0001-create-locations-table.sql
+  - include:
+      file: db/changelog/changesets/0002-add-description-to-locations.sql
