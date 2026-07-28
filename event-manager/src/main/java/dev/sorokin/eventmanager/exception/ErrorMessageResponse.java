@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public record ErrorMessageResponse(
         int statusCode,
-        String error,
         String message,
+        String detailedMessage,
         LocalDateTime localDateTime
 ) {
 }

@@ -17,7 +17,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessageResponse> handleValidationException(MethodArgumentNotValidException e) {
-        log.error("Got validation exception ", e);
+        log.error("==================Got validation exception================== ", e);
 
         String detailedMessage = e.getBindingResult()
                 .getFieldErrors()
@@ -36,7 +36,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorMessageResponse> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.error("Got entity not found exception ", e);
+        log.error("==================Got entity not found exception================== ", e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 HttpStatus.NOT_FOUND.value(),
@@ -47,9 +47,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessageResponse);
     }
 
+    @ExceptionHandler(LocationAlreadyExistsException.class)
+    public ResponseEntity<ErrorMessageResponse> handleLocationAlreadyExistsException(LocationAlreadyExistsException e) {
+        log.error("==================Got location already exists exception================== ", e);
+
+        ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Location is already exists",
+                e.getMessage(),
+                LocalDateTime.now());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessageResponse);
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessageResponse> handleException(Exception e) {
-        log.error("Got server exception: {}", e.getMessage(), e);
+        log.error("==================Got server exception================== {}", e.getMessage(), e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),

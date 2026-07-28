@@ -12,11 +12,11 @@ import java.util.List;
 @Mapper(componentModel = "spring")
 public interface LocationMapper {
 
-    // Entity -> DTO
+    // ==================Entity -> DTO==================
     LocationResponse toResponse(LocationEntity locationEntity);
     List<LocationResponse> toResponseList(List<LocationEntity> entities);
 
-    // DTO -> Entity
+    // ==================DTO -> Entity==================
     // Create
     @Mapping(target = "id", ignore = true)
     LocationEntity toEntity(LocationRequest request);

@@ -29,26 +29,26 @@ public class LocationController {
 
     @GetMapping("/{id}")
     public ResponseEntity<LocationResponse> getById(@PathVariable Long id) {
-        log.info("==================Get request to get location by id==================");
+        log.info("==================Get request to get location by id: {}==================", id);
         return ResponseEntity.ok(locationService.getLocationById(id));
     }
 
     @PostMapping
     public ResponseEntity<LocationResponse> create(@Valid @RequestBody LocationRequest request) {
-        log.info("==================Post request to create location==================");
+        log.info("==================Post request to create location: {}==================", request);
         return ResponseEntity.status(HttpStatus.CREATED).body(locationService.createLocation(request));
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
-        log.info("==================Delete request to delete location by id==================");
-        locationService.deleteLocation(id);
-        return ResponseEntity.noContent().build();
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<LocationResponse> update(@PathVariable Long id, @Valid @RequestBody LocationRequest request) {
-        log.info("==================Put request to update location by id==================");
+        log.info("==================Put request to update location: {} by id: {}==================", request, id);
         return ResponseEntity.ok(locationService.updateLocation(id, request));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        log.info("==================Delete request to delete location by id: {}==================", id);
+        locationService.deleteLocation(id);
+        return ResponseEntity.noContent().build();
     }
 }
