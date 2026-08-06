@@ -8,9 +8,10 @@ import dev.sorokin.eventmanager.mapper.LocationMapper;
 import dev.sorokin.eventmanager.repository.LocationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -19,50 +20,51 @@ public class LocationService {
     private final LocationRepository locationRepository;
     private final LocationMapper locationMapper;
 
-    // Пагинация
-    // @Transactoinal(readOnly = true)???
-    public List<LocationResponse> getAllLocations() {
-        return locationMapper.toResponseList(locationRepository.findAll());
+    @Transactional(readOnly = true)
+    public Page<LocationResponse> getAllLocations(Pageable pageable) {
+        return locationRepository.findAll(pageable)
+                .map(locationMapper::toResponse);
     }
 
+    @Transactional(readOnly = true)
     public LocationResponse getLocationById(Long id) {
-        LocationEntity foundLocationEntity = locationRepository.findById(id)
+        LocationEntity locationEntity = locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
-        return locationMapper.toResponse(foundLocationEntity);
+        return locationMapper.toResponse(locationEntity);
     }
 
-    //@Transactional???
+    @Transactional
     public LocationResponse createLocation(LocationRequest request) {
-        // TO DO
-        // - Проверить нет ли события с таким же названием (добавить кастомный метод в репозиторий)
-        // - Подумать, что если даже названия событий одинаковые, но разные адреса - то допустимо
-        if (locationRepository.existsLocationEntityByNameAndAddress(request.name(), request.address())) {
+        if (isLocationExists(request.name(), request.address())) {
             throw new LocationAlreadyExistsException("Location: %s with address: %s is already exists".formatted(request.name(), request.address()));
         }
-
-        LocationEntity savedLocationEntity = locationRepository.save(locationMapper.toEntity(request));
-        return locationMapper.toResponse(savedLocationEntity);
+        LocationEntity locationEntity = locationRepository.save(locationMapper.toEntity(request));
+        return locationMapper.toResponse(locationEntity);
     }
 
+    @Transactional
     public void deleteLocation(Long id) {
-        if (!locationRepository.existsById(id)) {
-            throw new EntityNotFoundException("Entity with id: %s not found".formatted(id));
-        }
-        locationRepository.deleteById(id);
+        LocationEntity locationEntity = locationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
+        locationRepository.delete(locationEntity);
     }
 
-    // @Transactional???
+    @Transactional
     public LocationResponse updateLocation(Long id, LocationRequest request) {
-        LocationEntity locationEntityToUpdate = locationRepository.findById(id)
+        LocationEntity locationEntity = locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
 
-        // TO DO
-        // - Проверить нет ли события с таким же названием (добавить кастомный метод в репозиторий)
-        // - Подумать, что если даже названия событий одинаковые, но разные адреса - то допустимо
-        // - Тут такое работать не будет - мы обновляем текущую локацию и если, например хотим изменить
-        // - только capacity, то будет ошибка, а это неправильно - подумать...
-        locationMapper.updateEntity(request, locationEntityToUpdate);
+        if (!(locationEntity.getName().equals(request.name()) && locationEntity.getAddress().equals(request.address()))) {
+            if (isLocationExists(request.name(), request.address())) {
+                throw new LocationAlreadyExistsException("Location: %s with address: %s is already exists".formatted(request.name(), request.address()));
+            }
+        }
+        locationMapper.updateEntity(request, locationEntity);
 
-        return locationMapper.toResponse(locationRepository.save(locationEntityToUpdate));
+        return locationMapper.toResponse(locationEntity);
+    }
+
+    private boolean isLocationExists(String name, String address) {
+        return locationRepository.existsLocationEntityByNameAndAddress(name, address);
     }
 }

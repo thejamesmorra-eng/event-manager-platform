@@ -7,14 +7,11 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
 
-import java.util.List;
-
 @Mapper(componentModel = "spring")
 public interface LocationMapper {
 
     // ==================Entity -> DTO==================
     LocationResponse toResponse(LocationEntity locationEntity);
-    List<LocationResponse> toResponseList(List<LocationEntity> entities);
 
     // ==================DTO -> Entity==================
     // Create

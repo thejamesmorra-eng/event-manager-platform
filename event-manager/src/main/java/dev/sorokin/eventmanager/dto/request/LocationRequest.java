@@ -11,7 +11,7 @@ public record LocationRequest(
         @Size(min = 2, max = 100, message = "Адрес мероприятия должен содержать от двух до ста символов")
         String address,
 
-        @NotNull
+        @NotNull(message = "Вместимость мероприятия не указана")
         @Positive(message = "Вместимость мероприятия должна быть больше нуля")
         @Max(value = 100_000, message = "Вместимость не может быть более ста тысяч")
         Integer capacity,
