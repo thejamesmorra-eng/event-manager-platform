@@ -9,11 +9,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessageResponse> handleValidationException(MethodArgumentNotValidException e) {
@@ -26,10 +29,9 @@ public class GlobalExceptionHandler {
                 .collect(Collectors.joining(", "));
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                HttpStatus.BAD_REQUEST.value(),
                 "Validation error",
                 detailedMessage,
-                LocalDateTime.now());
+                LocalDateTime.now().format(formatter));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessageResponse);
     }
@@ -39,10 +41,9 @@ public class GlobalExceptionHandler {
         log.error("==================Got entity not found exception================== ", e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                HttpStatus.NOT_FOUND.value(),
                 "Entity not found",
                 e.getMessage(),
-                LocalDateTime.now());
+                LocalDateTime.now().format(formatter));
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessageResponse);
     }
@@ -52,10 +53,9 @@ public class GlobalExceptionHandler {
         log.error("==================Got location already exists exception================== ", e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                HttpStatus.BAD_REQUEST.value(),
                 "Location is already exists",
                 e.getMessage(),
-                LocalDateTime.now());
+                LocalDateTime.now().format(formatter));
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessageResponse);
     }
@@ -65,10 +65,9 @@ public class GlobalExceptionHandler {
         log.error("==================Got server exception================== {}", e.getMessage(), e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                HttpStatus.INTERNAL_SERVER_ERROR.value(),
-                "Server exception",
+                "Server error",
                 e.getMessage(),
-                LocalDateTime.now());
+                LocalDateTime.now().format(formatter));
 
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessageResponse);
     }

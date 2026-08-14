@@ -14,15 +14,15 @@ public class LocationEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name")
+    @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "address")
+    @Column(name = "address", nullable = false, length = 100)
     private String address;
 
-    @Column(name = "capacity")
+    @Column(name = "capacity", nullable = false)
     private Integer capacity;
 
-    @Column(name = "description", length = 500)
+    @Column(name = "description", nullable = false, length = 500)
     private String description;
 }
