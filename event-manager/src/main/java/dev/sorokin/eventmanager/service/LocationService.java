@@ -36,7 +36,9 @@ public class LocationService {
     @Transactional
     public LocationResponse createLocation(LocationRequest request) {
         if (isLocationExists(request.name(), request.address())) {
-            throw new LocationAlreadyExistsException("Location: %s with address: %s is already exists".formatted(request.name(), request.address()));
+            throw new LocationAlreadyExistsException(
+                    "Location: %s with address: %s is already exists".formatted(request.name(), request.address())
+            );
         }
         LocationEntity locationEntity = locationRepository.save(locationMapper.toEntity(request));
         return locationMapper.toResponse(locationEntity);
@@ -56,7 +58,9 @@ public class LocationService {
 
         if (!(locationEntity.getName().equals(request.name()) && locationEntity.getAddress().equals(request.address()))) {
             if (isLocationExists(request.name(), request.address())) {
-                throw new LocationAlreadyExistsException("Location: %s with address: %s is already exists".formatted(request.name(), request.address()));
+                throw new LocationAlreadyExistsException(
+                        "Location: %s with address: %s is already exists".formatted(request.name(), request.address())
+                );
             }
         }
         locationMapper.updateEntity(request, locationEntity);
