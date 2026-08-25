@@ -20,7 +20,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessageResponse> handleValidationException(MethodArgumentNotValidException e) {
-        log.error("==================Got validation exception================== ", e);
+        log.error("Got validation exception ", e);
 
         String detailedMessage = e.getBindingResult()
                 .getFieldErrors()
@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorMessageResponse> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.error("==================Got entity not found exception================== ", e);
+        log.error("Got entity not found exception ", e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 "Entity not found",
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(LocationAlreadyExistsException.class)
     public ResponseEntity<ErrorMessageResponse> handleLocationAlreadyExistsException(LocationAlreadyExistsException e) {
-        log.error("==================Got location already exists exception================== ", e);
+        log.error("Got location already exists exception ", e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 "Location is already exists",
@@ -62,7 +62,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessageResponse> handleException(Exception e) {
-        log.error("==================Got server exception================== {}", e.getMessage(), e);
+        log.error("Got server exception {}", e.getMessage(), e);
 
         ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
                 "Server error",

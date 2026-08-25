@@ -1,6 +1,6 @@
 -- liquibase formatted sql
 
--- changeset your_name:0001
+-- changeset Ivan_Shibin:0001
 -- comment: Создание таблицы locations
 
 CREATE TABLE locations (

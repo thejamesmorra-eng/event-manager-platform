@@ -24,6 +24,7 @@ logging:
   level:
     root: INFO
     org.springframework.web: INFO
+    dev.sorokin.eventmanager: DEBUG
 
 springdoc:
   swagger-ui:

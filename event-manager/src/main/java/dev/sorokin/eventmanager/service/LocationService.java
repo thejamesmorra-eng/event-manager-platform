@@ -2,6 +2,7 @@ package dev.sorokin.eventmanager.service;
 
 import dev.sorokin.eventmanager.dto.request.LocationRequest;
 import dev.sorokin.eventmanager.dto.response.LocationResponse;
+import dev.sorokin.eventmanager.dto.response.PageResponse;
 import dev.sorokin.eventmanager.entity.LocationEntity;
 import dev.sorokin.eventmanager.exception.LocationAlreadyExistsException;
 import dev.sorokin.eventmanager.mapper.LocationMapper;
@@ -21,15 +22,15 @@ public class LocationService {
     private final LocationMapper locationMapper;
 
     @Transactional(readOnly = true)
-    public Page<LocationResponse> getAllLocations(Pageable pageable) {
-        return locationRepository.findAll(pageable)
+    public PageResponse<LocationResponse> getAllLocations(Pageable pageable) {
+        Page<LocationResponse> page = locationRepository.findAll(pageable)
                 .map(locationMapper::toResponse);
+        return PageResponse.fromPage(page);
     }
 
     @Transactional(readOnly = true)
     public LocationResponse getLocationById(Long id) {
-        LocationEntity locationEntity = locationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
+        LocationEntity locationEntity = getEntityOrThrow(id);
         return locationMapper.toResponse(locationEntity);
     }
 
@@ -46,15 +47,13 @@ public class LocationService {
 
     @Transactional
     public void deleteLocation(Long id) {
-        LocationEntity locationEntity = locationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
+        LocationEntity locationEntity = getEntityOrThrow(id);
         locationRepository.delete(locationEntity);
     }
 
     @Transactional
     public LocationResponse updateLocation(Long id, LocationRequest request) {
-        LocationEntity locationEntity = locationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
+        LocationEntity locationEntity = getEntityOrThrow(id);
 
         if (!(locationEntity.getName().equals(request.name()) && locationEntity.getAddress().equals(request.address()))) {
             if (isLocationExists(request.name(), request.address())) {
@@ -68,6 +67,11 @@ public class LocationService {
     }
 
     private boolean isLocationExists(String name, String address) {
-        return locationRepository.existsLocationEntityByNameAndAddress(name, address);
+        return locationRepository.existsByNameAndAddress(name, address);
+    }
+
+    private LocationEntity getEntityOrThrow(Long id) {
+        return locationRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
     }
 }
