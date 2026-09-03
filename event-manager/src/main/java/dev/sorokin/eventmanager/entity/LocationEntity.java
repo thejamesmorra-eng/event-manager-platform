@@ -25,4 +25,15 @@ public class LocationEntity {
 
     @Column(name = "description", nullable = false, length = 500)
     private String description;
+
+    @PrePersist
+    @PreUpdate
+    private void validateBeforeSave() {
+        if (name == null || name.isBlank() ||
+                address == null || address.isBlank() ||
+                capacity == null || capacity <= 0 ||
+                description == null || description.isBlank()) {
+            throw new IllegalStateException("All fields must be valid");
+        }
+    }
 }
