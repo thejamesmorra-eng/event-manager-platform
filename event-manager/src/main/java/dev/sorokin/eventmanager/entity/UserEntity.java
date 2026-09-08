@@ -18,6 +18,9 @@ public class UserEntity {
     @Column(name = "login", unique = true, nullable = false)
     private String login;
 
+    @Column(name = "age", nullable = false)
+    private Integer age;
+
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
@@ -30,6 +33,7 @@ public class UserEntity {
     private void validateBeforeSave() {
         if (login == null || login.isBlank() ||
                 passwordHash == null || passwordHash.isBlank() ||
+                age == null || age <= 0 ||
                 role == null) {
             throw new IllegalStateException("All fields must be valid");
         }
