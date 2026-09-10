@@ -31,13 +31,13 @@
 
 ## 🔒 Spring Security
 - [x] Добавить зависимость spring-boot-starter-security
-- [ ] Создать SecurityConfig с @EnableWebSecurity
-- [ ] Настроить PasswordEncoder (BCryptPasswordEncoder)
+- [x] Создать SecurityConfig с @EnableWebSecurity
+- [x] Настроить PasswordEncoder (BCryptPasswordEncoder)
 - [ ] Настроить фильтры:
-    - [ ] Отключить CSRF (для JWT)
-    - [ ] sessionManagement(STATELESS)
-    - [ ] httpBasic отключить
-    - [ ] formLogin отключить
+    - [x] Отключить CSRF (для JWT)
+    - [x] sessionManagement(STATELESS)
+    - [x] httpBasic отключить
+    - [x] formLogin отключить
     - [ ] добавить JwtFilter перед UsernamePasswordAuthenticationFilter
 
 ## 🎫 JWT
