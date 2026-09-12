@@ -1,6 +1,6 @@
 package dev.sorokin.eventmanager.controller;
 
-import dev.sorokin.eventmanager.dto.request.UserRegistrationRequest;
+import dev.sorokin.eventmanager.dto.request.UserRegisterRequest;
 import dev.sorokin.eventmanager.dto.response.UserResponse;
 import dev.sorokin.eventmanager.service.UserService;
 import jakarta.validation.Valid;
@@ -18,7 +18,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserResponse> create(@RequestBody UserRegistrationRequest request) {
+    public ResponseEntity<UserResponse> create(@RequestBody UserRegisterRequest request) {
         return null;
     }
 

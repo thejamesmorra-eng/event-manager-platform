@@ -20,6 +20,10 @@ spring:
     enabled: true
     change-log: classpath:/db/changelog/changelog-master.yaml
 
+jwt:
+  secret: ""
+  expiration: 86400000
+
 logging:
   level:
     root: INFO

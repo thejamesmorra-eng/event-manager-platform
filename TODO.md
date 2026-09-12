@@ -33,6 +33,8 @@
 - [x] Добавить зависимость spring-boot-starter-security
 - [x] Создать SecurityConfig с @EnableWebSecurity
 - [x] Настроить PasswordEncoder (BCryptPasswordEncoder)
+- [ ] Не возвращать e.getMessage() в ошибках безопасности, чтобы не было утечек, только фиксированные сообщения
+- [ ] Обработать ошибку существующего логина в CustomUserDetailsService
 - [ ] Настроить фильтры:
     - [x] Отключить CSRF (для JWT)
     - [x] sessionManagement(STATELESS)

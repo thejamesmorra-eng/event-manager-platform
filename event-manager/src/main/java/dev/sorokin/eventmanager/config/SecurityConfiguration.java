@@ -1,8 +1,14 @@
 package dev.sorokin.eventmanager.config;
 
+import dev.sorokin.eventmanager.security.CustomAccessDeniedHandler;
+import dev.sorokin.eventmanager.security.CustomAuthenticationEntryPoint;
+import dev.sorokin.eventmanager.security.CustomUserDetailsService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -13,7 +19,11 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfiguration {
+
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -33,16 +43,16 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "/locations/**")
                         .hasRole("ADMIN")
 
-                        // Users: публичные
+                        // Users
                         .requestMatchers(HttpMethod.POST, "/users", "/users/auth")
                         .permitAll()
-
-                        // Users: защищённые
                         .requestMatchers(HttpMethod.GET, "/users/**")
-                        .authenticated()
-
-                        // Всё остальное — требует аутентификации
+                        .hasRole("ADMIN")
                         .anyRequest().authenticated())
+                .exceptionHandling(exception ->
+                        exception
+                                .authenticationEntryPoint(customAuthenticationEntryPoint)
+                                .accessDeniedHandler(customAccessDeniedHandler))
                 .build();
     }
 
