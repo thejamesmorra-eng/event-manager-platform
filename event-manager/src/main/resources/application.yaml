@@ -21,7 +21,7 @@ spring:
     change-log: classpath:/db/changelog/changelog-master.yaml
 
 jwt:
-  secret: ""
+  secret: "29d3b4880569e06b8e7a43619eb8d445fa53e6dde2e5e22ddf1091704036554c"
   expiration: 86400000
 
 logging:

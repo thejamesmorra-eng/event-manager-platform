@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,6 +45,20 @@ public class GlobalExceptionHandler {
         log.warn("Got location already exists exception ", e);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(buildErrorResponse("Location is already exists", e.getMessage()));
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorMessageResponse> handleBadCredentialsException(BadCredentialsException e) {
+        log.warn("Got bad credentials exception ", e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(buildErrorResponse("Unauthorized", "Invalid login or password"));
+    }
+
+    @ExceptionHandler(LoginAlreadyExistsException.class)
+    public ResponseEntity<ErrorMessageResponse> handleLoginAlreadyExistsException(LoginAlreadyExistsException e) {
+        log.warn("Got login already exists exception ", e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse("Login already exists", e.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

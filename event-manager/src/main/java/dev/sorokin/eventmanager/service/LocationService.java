@@ -72,6 +72,6 @@ public class LocationService {
 
     private LocationEntity getEntityOrThrow(Long id) {
         return locationRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Entity with id: %s not found".formatted(id)));
+                .orElseThrow(() -> new EntityNotFoundException("Location entity with id: %s not found".formatted(id)));
     }
 }

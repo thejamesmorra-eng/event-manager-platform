@@ -1,11 +1,12 @@
 package dev.sorokin.eventmanager.controller;
 
-import dev.sorokin.eventmanager.dto.request.UserRegisterRequest;
+import dev.sorokin.eventmanager.dto.request.UserRegistration;
 import dev.sorokin.eventmanager.dto.response.UserResponse;
 import dev.sorokin.eventmanager.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,17 +19,15 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<UserResponse> create(@RequestBody UserRegisterRequest request) {
-        return null;
+    public ResponseEntity<UserResponse> register(@Valid @RequestBody UserRegistration userRegistration) {
+        log.debug("Register user with login: {}", userRegistration.login());
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userService.registerUser(userRegistration));
     }
 
-    @PostMapping("/auth")
-    public ResponseEntity<Void> getAuth() {
-        return null;
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getById(@Valid @PathVariable Long id) {
-        return null;
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponse> getById(@PathVariable Long userId) {
+        log.debug("Get user by id: {}", userId);
+        return ResponseEntity.ok(userService.getUserById(userId));
     }
 }

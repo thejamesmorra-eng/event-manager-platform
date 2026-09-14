@@ -3,12 +3,14 @@ package dev.sorokin.eventmanager.entity;
 import dev.sorokin.eventmanager.model.UserRole;
 import jakarta.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
 @Table(name = "users")
 @Getter
 @Setter
+@NoArgsConstructor
 public class UserEntity {
 
     @Id
@@ -27,6 +29,13 @@ public class UserEntity {
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private UserRole role;
+
+    public UserEntity(String login, Integer age, String passwordHash, UserRole role) {
+        this.login = login;
+        this.age = age;
+        this.passwordHash = passwordHash;
+        this.role = role;
+    }
 
     @PrePersist
     @PreUpdate
