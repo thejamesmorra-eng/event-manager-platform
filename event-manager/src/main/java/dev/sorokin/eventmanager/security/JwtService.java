@@ -1,5 +1,6 @@
 package dev.sorokin.eventmanager.security;
 
+import dev.sorokin.eventmanager.model.UserRole;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
@@ -24,9 +25,11 @@ public class JwtService {
         this.expirationTime = expirationTime;
     }
 
-    public String generateToken(String login) {
+    public String generateToken(Long userId, String login, UserRole role) {
         return Jwts.builder()
                 .setSubject(login)
+                .claim("userId", userId)
+                .claim("role", role.name())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + expirationTime))
                 .signWith(secretKey, SignatureAlgorithm.HS256)
@@ -35,6 +38,14 @@ public class JwtService {
 
     public String getLoginFromToken(String jwt) {
         return getClaims(jwt).getSubject();
+    }
+
+    public Long getUserIdFromToken(String jwt) {
+        return getClaims(jwt).get("userId", Long.class);
+    }
+
+    public String getRoleFromToken(String jwt) {
+        return getClaims(jwt).get("role", String.class);
     }
 
     public boolean isTokenValid(String jwt) {

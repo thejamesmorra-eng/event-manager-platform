@@ -11,104 +11,103 @@
 - [x] UserRepository (JpaRepository)
 
 ## 📦 DTO и маппинг
-- [ ] UserRegisterRequest (login, password, age)
-- [ ] UserResponse (id, login, age, role) — без пароля!
-- [ ] UserMapper (MapStruct для конвертации UserEntity ↔ DTO)
+- [x] UserRegisterRequest (login, password, age)
+- [x] UserResponse (id, login, age, role) — без пароля!
+- [x] UserMapper (MapStruct для конвертации UserEntity ↔ DTO)
 
 ## 🎯 Эндпоинты (UserController)
-- [ ] POST /users — регистрация (публичный, только USER)
-    - [ ] Проверка уникальности login
-    - [ ] Хеширование пароля (пока через BCrypt, но без Security)
-    - [ ] Роль всегда USER
-    - [ ] Возврат UserResponse (без пароля)
-- [ ] POST /users/auth — логин (публичный)
-    - [ ] Проверка credentials
-    - [ ] Генерация JWT
-    - [ ] Возврат JwtResponse
-- [ ] GET /users/{userId} — получение пользователя (защищённый)
-    - [ ] Проверка, что пользователь существует
-    - [ ] Возврат UserResponse
+- [x] POST /users — регистрация (публичный, только USER)
+    - [x] Проверка уникальности login
+    - [x] Хеширование пароля (пока через BCrypt, но без Security)
+    - [x] Роль всегда USER
+    - [x] Возврат UserResponse (без пароля)
+- [x] POST /users/auth — логин (публичный)
+    - [x] Проверка credentials
+    - [x] Генерация JWT
+    - [x] Возврат JwtResponse
+- [x] GET /users/{userId} — получение пользователя (защищённый)
+    - [x] Проверка, что пользователь существует
+    - [x] Возврат UserResponse
 
 ## 🔒 Spring Security
 - [x] Добавить зависимость spring-boot-starter-security
 - [x] Создать SecurityConfig с @EnableWebSecurity
 - [x] Настроить PasswordEncoder (BCryptPasswordEncoder)
-- [ ] Не возвращать e.getMessage() в ошибках безопасности, чтобы не было утечек, только фиксированные сообщения
-- [ ] Обработать ошибку существующего логина в CustomUserDetailsService
-- [ ] Настроить фильтры:
+- [x] Не возвращать e.getMessage() в ошибках безопасности, чтобы не было утечек, только фиксированные сообщения
+- [x] Настроить фильтры:
     - [x] Отключить CSRF (для JWT)
     - [x] sessionManagement(STATELESS)
     - [x] httpBasic отключить
     - [x] formLogin отключить
-    - [ ] добавить JwtFilter перед UsernamePasswordAuthenticationFilter
+    - [x] добавить JwtFilter перед UsernamePasswordAuthenticationFilter
 
 ## 🎫 JWT
-- [ ] Создать JwtService/TokenProvider
-    - [ ] Генерация токена (access-only, без refresh)
-    - [ ] Валидация токена
-    - [ ] Извлечение userId и role из токена
-    - [ ] Понять надо ли пароль доставать?
-- [ ] Создать JwtFilter (OncePerRequestFilter)
-    - [ ] Извлечение Bearer token из заголовка
-    - [ ] Валидация токена
-    - [ ] Создание Authentication
-    - [ ] Установка в SecurityContextHolder
-    - [ ] Пропуск запроса дальше по цепочке
+- [x] Создать JwtService/TokenProvider
+    - [x] Генерация токена (access-only, без refresh)
+    - [x] Валидация токена
+    - [x] Извлечение userId и role из токена
+    - [x] Понять надо ли пароль доставать?
+- [x] Создать JwtFilter (OncePerRequestFilter)
+    - [x] Извлечение Bearer token из заголовка
+    - [x] Валидация токена
+    - [x] Создание Authentication
+    - [x] Установка в SecurityContextHolder
+    - [x] Пропуск запроса дальше по цепочке
 
 ## 🛡️ Обработка ошибок безопасности
-- [ ] Создать CustomAuthenticationEntryPoint (для 401)
-    - [ ] Возврат ErrorMessageResponse в JSON
-- [ ] Создать CustomAccessDeniedHandler (для 403)
-    - [ ] Возврат ErrorMessageResponse в JSON
-- [ ] Подключить в SecurityConfig:
-    - [ ] exceptionHandling().authenticationEntryPoint()
-    - [ ] exceptionHandling().accessDeniedHandler()
+- [x] Создать CustomAuthenticationEntryPoint (для 401)
+    - [x] Возврат ErrorMessageResponse в JSON
+- [x] Создать CustomAccessDeniedHandler (для 403)
+    - [x] Возврат ErrorMessageResponse в JSON
+- [x] Подключить в SecurityConfig:
+    - [x] exceptionHandling().authenticationEntryPoint()
+    - [x] exceptionHandling().accessDeniedHandler()
 
 ## 👑 Администратор при старте
-- [ ] Создать @PostConstruct или CommandLineRunner
-- [ ] Проверка: есть ли ADMIN в БД
-- [ ] Если нет — создать с логином admin и паролем (захэшировать)
-- [ ] Убедиться, что не дублируется при повторных стартах
+- [x] Создать @PostConstruct или CommandLineRunner
+- [x] Проверка: есть ли ADMIN в БД
+- [x] Если нет — создать с логином admin и паролем (захэшировать)
+- [x] Убедиться, что не дублируется при повторных стартах
 
 ## 🎯 Настройка доступа (матчинг ролей)
-- [ ] Публичные эндпоинты (permitAll):
-    - [ ] POST /users
-    - [ ] POST /users/auth
-- [ ] Доступ только для аутентифицированных:
-    - [ ] GET /users/{userId}
-    - [ ] GET /locations
-    - [ ] GET /locations/{locationId}
-- [ ] Доступ только для ADMIN:
-    - [ ] POST /locations
-    - [ ] PUT /locations/{locationId}
-    - [ ] DELETE /locations/{locationId}
+- [x] Публичные эндпоинты (permitAll):
+    - [x] POST /users
+    - [x] POST /users/auth
+- [x] Доступ только для аутентифицированных:
+    - [x] GET /users/{userId}
+    - [x] GET /locations
+    - [x] GET /locations/{locationId}
+- [x] Доступ только для ADMIN:
+    - [x] POST /locations
+    - [x] PUT /locations/{locationId}
+    - [x] DELETE /locations/{locationId}
 
 ## 📝 Дополнительно
-- [ ] Добавить поле age в UserEntity (если ещё нет)
-- [ ] Проверить, что пароль не возвращается ни в одном ответе
-- [ ] Проверить, что 401/403 возвращают ErrorMessageResponse
-- [ ] Проверить, что ADMIN не создаётся через регистрацию
-- [ ] Проверить, что все ошибки в едином формате
-- [ ] Понять, почему не работают переменные окружения (пароль админа тоже добавить туда)
+- [x] Добавить поле age в UserEntity (если ещё нет)
+- [x] Проверить, что пароль не возвращается ни в одном ответе
+- [x] Проверить, что 401/403 возвращают ErrorMessageResponse
+- [x] Проверить, что ADMIN не создаётся через регистрацию
+- [x] Проверить, что все ошибки в едином формате
+- [x] Понять, почему не работают переменные окружения (пароль админа тоже добавить туда)
 
 ## 🧪 Тестирование и проверка
-- [ ] Запустить PostgreSQL через docker-compose
-- [ ] Проверить регистрацию нового пользователя
-- [ ] Проверить логин и получение JWT
-- [ ] Проверить GET /users/{userId} без токена → 401
-- [ ] Проверить GET /users/{userId} с токеном USER → 403 (если запрашивает другого)
-- [ ] Проверить GET /locations с токеном USER → 200
-- [ ] Проверить POST /locations с токеном USER → 403
-- [ ] Проверить POST /locations с токеном ADMIN → 201
-- [ ] Проверить, что пароль в БД хранится как хэш (не plain text)
-- [ ] Проверить, что ADMIN создался при старте (и только один раз)
-- [ ] Открыть Swagger: http://localhost:8080/swagger-ui/index.html
-- [ ] Сверить поведение с OpenAPI-контрактом
+- [x] Запустить PostgreSQL через docker-compose
+- [x] Проверить регистрацию нового пользователя
+- [x] Проверить логин и получение JWT
+- [x] Проверить GET /users/{userId} без токена → 401
+- [x] Проверить GET /users/{userId} с токеном USER → 403 (если запрашивает другого)
+- [x] Проверить GET /locations с токеном USER → 200
+- [x] Проверить POST /locations с токеном USER → 403
+- [x] Проверить POST /locations с токеном ADMIN → 201
+- [x] Проверить, что пароль в БД хранится как хэш (не plain text)
+- [x] Проверить, что ADMIN создался при старте (и только один раз)
+- [x] Открыть Swagger: http://localhost:8080/swagger-ui/index.html
+- [x] Сверить поведение с OpenAPI-контрактом
 
 ## 🔧 Возможные проблемы (держать в уме)
-- [ ] Не забыть добавить age в UserEntity
-- [ ] Не забыть про уникальность login при регистрации
-- [ ] Не путать 401 (нет аутентификации) и 403 (нет прав)
-- [ ] В JWT класть userId и role (не весь объект)
-- [ ] Фильтр должен пропускать запрос дальше, даже если токена нет
-- [ ] AuthenticationEntryPoint должен возвращать JSON, а не HTML
+- [x] Не забыть добавить age в UserEntity
+- [x] Не забыть про уникальность login при регистрации
+- [x] Не путать 401 (нет аутентификации) и 403 (нет прав)
+- [x] В JWT класть userId и role (не весь объект)
+- [x] Фильтр должен пропускать запрос дальше, даже если токена нет
+- [x] AuthenticationEntryPoint должен возвращать JSON, а не HTML
