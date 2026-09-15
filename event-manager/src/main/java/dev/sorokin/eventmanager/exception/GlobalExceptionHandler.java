@@ -4,6 +4,8 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -16,11 +18,11 @@ import java.util.stream.Collectors;
 @Slf4j
 public class GlobalExceptionHandler {
 
-    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessageResponse> handleValidationException(MethodArgumentNotValidException e) {
-        log.error("Got validation exception ", e);
+        log.warn("Got validation exception ", e);
 
         String detailedMessage = e.getBindingResult()
                 .getFieldErrors()
@@ -28,47 +30,62 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining(", "));
 
-        ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                "Validation error",
-                detailedMessage,
-                LocalDateTime.now().format(formatter));
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessageResponse);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse("Validation error", detailedMessage));
     }
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorMessageResponse> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.error("Got entity not found exception ", e);
-
-        ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                "Entity not found",
-                e.getMessage(),
-                LocalDateTime.now().format(formatter));
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorMessageResponse);
+        log.warn("Got entity not found exception ", e);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(buildErrorResponse("Entity not found", e.getMessage()));
     }
 
     @ExceptionHandler(LocationAlreadyExistsException.class)
     public ResponseEntity<ErrorMessageResponse> handleLocationAlreadyExistsException(LocationAlreadyExistsException e) {
-        log.error("Got location already exists exception ", e);
+        log.warn("Got location already exists exception ", e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse("Location is already exists", e.getMessage()));
+    }
 
-        ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                "Location is already exists",
-                e.getMessage(),
-                LocalDateTime.now().format(formatter));
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorMessageResponse> handleBadCredentialsException(BadCredentialsException e) {
+        log.warn("Got bad credentials exception ", e);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(buildErrorResponse("Unauthorized", "Invalid login or password"));
+    }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorMessageResponse);
+    @ExceptionHandler(LoginAlreadyExistsException.class)
+    public ResponseEntity<ErrorMessageResponse> handleLoginAlreadyExistsException(LoginAlreadyExistsException e) {
+        log.warn("Got login already exists exception ", e);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse("Login already exists", e.getMessage()));
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<ErrorMessageResponse> handleUsernameNotFound(UsernameNotFoundException e) {
+        log.warn("Username not found: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(buildErrorResponse("Unauthorized", "Invalid login or password"));
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessageResponse> handleException(Exception e) {
         log.error("Got server exception {}", e.getMessage(), e);
 
-        ErrorMessageResponse errorMessageResponse = new ErrorMessageResponse(
-                "Server error",
-                e.getMessage(),
-                LocalDateTime.now().format(formatter));
+        String detailedMessage = e.getMessage() != null
+                ? e.getMessage()
+                : "Unexpected server error";
 
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorMessageResponse);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(buildErrorResponse("Server error", detailedMessage));
+    }
+
+    private ErrorMessageResponse buildErrorResponse(String message, String detailedMessage) {
+        return new ErrorMessageResponse(
+                message,
+                detailedMessage,
+                LocalDateTime.now().format(FORMATTER)
+        );
     }
 }

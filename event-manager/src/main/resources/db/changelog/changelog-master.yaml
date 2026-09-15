@@ -3,3 +3,5 @@ databaseChangeLog:
       file: db/changelog/changesets/0001-create-locations-table.sql
   - include:
       file: db/changelog/changesets/0002-add-description-to-locations.sql
+  - include:
+      file: db/changelog/changesets/0003-create-users-table.sql
