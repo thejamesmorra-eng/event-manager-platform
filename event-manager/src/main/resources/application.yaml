@@ -6,9 +6,9 @@ spring:
     name: event-manager
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/event_manager
-    username: postgres
-    password: postgres
+    url: ${PSQL_URL:jdbc:postgresql://localhost:5432/event_manager}
+    username: ${PSQL_USERNAME:postgres}
+    password: ${PSQL_PASSWORD:postgres}
 
   jpa:
     hibernate:
@@ -19,6 +19,16 @@ spring:
   liquibase:
     enabled: true
     change-log: classpath:/db/changelog/changelog-master.yaml
+
+jwt:
+  secret: ${JWT_SECRET:29d3b4880569e06b8e7a43619eb8d445fa53e6dde2e5e22ddf1091704036554c}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+admin:
+  default:
+    login: admin
+    age: 18
+    password: ${ADMIN_PASSWORD:adminPassword}
 
 logging:
   level:
