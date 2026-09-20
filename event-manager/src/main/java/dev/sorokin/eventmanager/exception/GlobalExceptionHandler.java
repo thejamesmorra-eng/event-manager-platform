@@ -10,19 +10,15 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorMessageResponse> handleValidationException(MethodArgumentNotValidException e) {
-        log.warn("Got validation exception ", e);
+        log.warn("Got validation exception: {}", e.getMessage());
 
         String detailedMessage = e.getBindingResult()
                 .getFieldErrors()
@@ -36,28 +32,28 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<ErrorMessageResponse> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.warn("Got entity not found exception ", e);
+        log.warn("Got entity not found exception: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(buildErrorResponse("Entity not found", e.getMessage()));
     }
 
     @ExceptionHandler(LocationAlreadyExistsException.class)
     public ResponseEntity<ErrorMessageResponse> handleLocationAlreadyExistsException(LocationAlreadyExistsException e) {
-        log.warn("Got location already exists exception ", e);
+        log.warn("Got location already exists exception: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(buildErrorResponse("Location is already exists", e.getMessage()));
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     public ResponseEntity<ErrorMessageResponse> handleBadCredentialsException(BadCredentialsException e) {
-        log.warn("Got bad credentials exception ", e);
+        log.warn("Got bad credentials exception: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(buildErrorResponse("Unauthorized", "Invalid login or password"));
     }
 
     @ExceptionHandler(LoginAlreadyExistsException.class)
     public ResponseEntity<ErrorMessageResponse> handleLoginAlreadyExistsException(LoginAlreadyExistsException e) {
-        log.warn("Got login already exists exception ", e);
+        log.warn("Got login already exists exception: {}", e.getMessage());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(buildErrorResponse("Login already exists", e.getMessage()));
     }
@@ -82,10 +78,6 @@ public class GlobalExceptionHandler {
     }
 
     private ErrorMessageResponse buildErrorResponse(String message, String detailedMessage) {
-        return new ErrorMessageResponse(
-                message,
-                detailedMessage,
-                LocalDateTime.now().format(FORMATTER)
-        );
+        return ErrorMessageResponse.of(message, detailedMessage);
     }
 }

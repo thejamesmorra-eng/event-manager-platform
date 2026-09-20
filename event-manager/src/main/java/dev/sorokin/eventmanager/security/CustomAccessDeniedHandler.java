@@ -12,14 +12,11 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Component
 @Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     private final ObjectMapper objectMapper;
 
     public CustomAccessDeniedHandler(ObjectMapper objectMapper) {
@@ -38,10 +35,9 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
                 ? accessDeniedException.getMessage()
                 : "You don't have permission to access this resource";
 
-        ErrorMessageResponse messageResponse = new ErrorMessageResponse(
+        ErrorMessageResponse messageResponse = ErrorMessageResponse.of(
                 "Forbidden",
-                detailedMessage,
-                LocalDateTime.now().format(FORMATTER)
+                detailedMessage
         );
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);

@@ -12,14 +12,11 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Component
 @Slf4j
 public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
-    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
     private final ObjectMapper objectMapper;
 
     public CustomAuthenticationEntryPoint(ObjectMapper objectMapper) {
@@ -38,10 +35,9 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                 ? authException.getMessage()
                 : "Authentication required";
 
-        ErrorMessageResponse messageResponse = new ErrorMessageResponse(
+        ErrorMessageResponse messageResponse = ErrorMessageResponse.of(
                 "Failed to authenticate",
-                detailedMessage,
-                LocalDateTime.now().format(FORMATTER)
+                detailedMessage
         );
 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
