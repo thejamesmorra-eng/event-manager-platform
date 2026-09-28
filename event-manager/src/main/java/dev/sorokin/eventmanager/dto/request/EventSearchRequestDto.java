@@ -1,15 +1,13 @@
 package dev.sorokin.eventmanager.dto.request;
 
 import dev.sorokin.eventmanager.model.EventStatus;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Positive;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.time.LocalDateTime;
 
 public record EventSearchRequestDto(
         @Size(min = 1, max = 255, message = "The event name must contain between 1 and 255 characters")
+        @Pattern(regexp = ".*\\S.*", message = "The event name must contain at least one non-whitespace character")
         String name,
 
         @Positive(message = "The min capacity of the event must be greater than 0")
@@ -40,4 +38,35 @@ public record EventSearchRequestDto(
 
         EventStatus eventStatus
 ) {
+        @AssertTrue(message = "placesMin cannot be greater than placesMax")
+        public boolean isPlacesRangeValid() {
+                if (placesMin == null || placesMax == null) {
+                        return true;
+                }
+                return placesMin <= placesMax;
+        }
+
+        @AssertTrue(message = "dateStartAfter cannot be after dateStartBefore")
+        public boolean isDateRangeValid() {
+                if (dateStartAfter == null || dateStartBefore == null) {
+                        return true;
+                }
+                return !dateStartAfter.isAfter(dateStartBefore);
+        }
+
+        @AssertTrue(message = "costMin cannot be greater than costMax")
+        public boolean isCostRangeValid() {
+                if (costMin == null || costMax == null) {
+                        return true;
+                }
+                return costMin <= costMax;
+        }
+
+        @AssertTrue(message = "durationMin cannot be greater than durationMax")
+        public boolean isDurationRangeValid() {
+                if (durationMin == null || durationMax == null) {
+                        return true;
+                }
+                return durationMin <= durationMax;
+        }
 }
