@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class PermissionService {
 
-    public void checkAccess(EventEntity eventEntity, String ownerLogin, UserRole role) {
+    public void checkPermissionOrThrow(EventEntity eventEntity, String ownerLogin, UserRole role) {
         if (!eventEntity.getOwner().getLogin().equals(ownerLogin) && !(role == UserRole.ADMIN)) {
             throw new AccessDeniedException("Access denied");
         }

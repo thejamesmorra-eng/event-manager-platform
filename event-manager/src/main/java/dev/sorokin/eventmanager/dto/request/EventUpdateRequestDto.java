@@ -24,4 +24,12 @@ public record EventUpdateRequestDto(
         @Positive(message = "The event location id must be greater than 0")
         Long locationId
 ) {
+        public boolean isEmpty() {
+                return name == null
+                        && maxPlaces == null
+                        && date == null
+                        && cost == null
+                        && duration == null
+                        && locationId == null;
+        }
 }

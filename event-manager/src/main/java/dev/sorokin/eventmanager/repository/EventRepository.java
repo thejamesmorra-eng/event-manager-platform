@@ -10,4 +10,5 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>,
                                             JpaSpecificationExecutor<EventEntity> {
     List<EventEntity> findAllByOwnerId(Long ownerId);
     boolean existsByLocationId(Long locationId);
+    List<EventEntity> findAllByLocationId(Long locationId);
 }

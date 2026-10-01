@@ -65,6 +65,13 @@ public class GlobalExceptionHandler {
                 .body(buildErrorResponse("Unauthorized", "Invalid login or password"));
     }
 
+    @ExceptionHandler(InvalidRequestException.class)
+    public ResponseEntity<ErrorMessageResponse> handleInvalidRequestException(InvalidRequestException e) {
+        log.warn("Got invalid request exception: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(buildErrorResponse("Invalid request", e.getMessage()));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorMessageResponse> handleException(Exception e) {
         log.error("Got server exception {}", e.getMessage(), e);
