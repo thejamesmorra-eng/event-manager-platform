@@ -1,6 +1,7 @@
 package dev.sorokin.eventmanager.service;
 
 import dev.sorokin.eventmanager.dto.request.EventCreateRequestDto;
+import dev.sorokin.eventmanager.dto.request.EventSearchRequestDto;
 import dev.sorokin.eventmanager.dto.request.EventUpdateRequestDto;
 import dev.sorokin.eventmanager.dto.response.EventDto;
 import dev.sorokin.eventmanager.entity.EventEntity;
@@ -13,8 +14,10 @@ import dev.sorokin.eventmanager.model.UserRole;
 import dev.sorokin.eventmanager.repository.EventRepository;
 import dev.sorokin.eventmanager.repository.LocationRepository;
 import dev.sorokin.eventmanager.repository.UserRepository;
+import dev.sorokin.eventmanager.specification.EventSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -48,20 +51,7 @@ public class EventService {
                     .formatted(request.maxPlaces(), locationEntity.getCapacity()));
         }
 
-        List<EventEntity> existingEvents = eventRepository.findAllByLocationId(request.locationId());
-        for (EventEntity existingEvent : existingEvents) {
-
-            LocalDateTime existingEventStart = existingEvent.getStartAt();
-            LocalDateTime existingEventEnd = existingEvent.getStartAt().plusMinutes(existingEvent.getDurationMinutes());
-
-            LocalDateTime requestEventStart = request.date();
-            LocalDateTime requestEventEnd = request.date().plusMinutes(request.duration());
-
-            if (existingEventStart.isBefore(requestEventEnd) && requestEventStart.isBefore(existingEventEnd)) {
-                throw new InvalidRequestException("Event overlaps with existing event (id=%s) on this location"
-                                .formatted(existingEvent.getId()));
-            }
-        }
+        checkOverlap(locationEntity.getId(), null, request.date(), request.duration());
 
         EventEntity eventEntity = new EventEntity(
                 request.name(),
@@ -93,7 +83,6 @@ public class EventService {
                             .formatted(eventEntity.getStatus())
             );
         }
-
         eventEntity.setStatus(EventStatus.CANCELLED);
     }
 
@@ -136,25 +125,38 @@ public class EventService {
             throw new InvalidRequestException("maxPlaces exceeds location capacity");
         }
 
-
-        // ==========================Это надо вынести в общий метод=====================================================
-        List<EventEntity> existingEvents = eventRepository.findAllByLocationId(eventEntity.getLocation().getId());
-        for (EventEntity existingEvent : existingEvents) {
-
-            LocalDateTime existingEventStart = existingEvent.getStartAt();
-            LocalDateTime existingEventEnd = existingEvent.getStartAt().plusMinutes(existingEvent.getDurationMinutes());
-
-            LocalDateTime newEventStart = eventEntity.getStartAt();
-            LocalDateTime newEventEnd = eventEntity.getStartAt().plusMinutes(eventEntity.getDurationMinutes());
-
-            if (existingEventStart.isBefore(newEventEnd) && newEventStart.isBefore(existingEventEnd)) {
-                throw new InvalidRequestException("Event overlaps with existing event (id=%s) on this location"
-                        .formatted(existingEvent.getId()));
-            }
-        }
-        // =============================================================================================================
+        checkOverlap(eventEntity.getLocation().getId(), id, request.date(), request.duration());
 
         return eventMapper.toResponse(eventEntity);
+    }
+
+    @Transactional(readOnly = true)
+    public List<EventDto> searchEvents(EventSearchRequestDto request) {
+        if (request.isEmpty()) {
+            return eventMapper.toResponseList(eventRepository.findAll());
+        }
+
+        Specification<EventEntity> spec = Specification.unrestricted();
+        if (request.name() != null) spec = spec.and(EventSpecification.hasName(request.name()));
+        if (request.placesMin() != null) spec = spec.and(EventSpecification.placesGreaterThanOrEqual(request.placesMin()));
+        if (request.placesMax() != null) spec = spec.and(EventSpecification.placesLessThanOrEqual(request.placesMax()));
+        if (request.dateStartAfter() != null) spec = spec.and(EventSpecification.startAtAfter(request.dateStartAfter()));
+        if (request.dateStartBefore() != null) spec = spec.and(EventSpecification.startAtAfter(request.dateStartBefore()));
+        if (request.costMin() != null) spec = spec.and(EventSpecification.costGreaterThanOrEqual(request.costMin()));
+        if (request.costMax() != null) spec = spec.and(EventSpecification.costLessThanOrEqual(request.costMax()));
+        if (request.durationMin() != null) spec = spec.and(EventSpecification.durationGreaterThanOrEqual(request.durationMin()));
+        if (request.durationMax() != null) spec = spec.and(EventSpecification.durationLessThanOrEqual(request.durationMax()));
+        if (request.locationId() != null) spec = spec.and(EventSpecification.hasLocationId(request.locationId()));
+        if (request.eventStatus() != null) spec = spec.and(EventSpecification.hasStatus(request.eventStatus()));
+
+        return eventMapper.toResponseList(eventRepository.findAll(spec));
+    }
+
+    public List<EventDto> getMyEvents() {
+        String ownerLogin = SecurityContextHolder.getContext().getAuthentication().getName();
+        UserEntity ownerEntity = userRepository.findByLogin(ownerLogin)
+                .orElseThrow(() -> new UsernameNotFoundException("User with login '" + ownerLogin + "' was not found"));
+        return eventMapper.toResponseList(eventRepository.findAllByOwnerId(ownerEntity.getId()));
     }
 
     private EventEntity getEntityOrThrow(Long id) {
@@ -162,7 +164,28 @@ public class EventService {
                 .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
     }
 
-    private void checkOverlap(Long locationId, LocalDateTime newEventStart, Integer newEventDuration, Long newEventId) {
+    private void checkOverlap(Long locationId,
+                              Long requestEventId,
+                              LocalDateTime requestEventStart,
+                              Integer requestEventDuration) {
+        List<EventEntity> existingEvents = eventRepository.findAllByLocationIdAndStatusIn(
+                locationId,
+                List.of(EventStatus.STARTED, EventStatus.WAIT_START));
 
+        for (EventEntity existingEvent : existingEvents) {
+
+            if (existingEvent.getId().equals(requestEventId)) {
+                continue;
+            }
+
+            LocalDateTime existingEventStart = existingEvent.getStartAt();
+            LocalDateTime existingEventEnd = existingEvent.getStartAt().plusMinutes(existingEvent.getDurationMinutes());
+            LocalDateTime newEventEnd = requestEventStart.plusMinutes(requestEventDuration);
+
+            if (existingEventStart.isBefore(newEventEnd) && requestEventStart.isBefore(existingEventEnd)) {
+                throw new InvalidRequestException("Event overlaps with existing event (id=%s) on this location"
+                        .formatted(existingEvent.getId()));
+            }
+        }
     }
 }

@@ -69,4 +69,18 @@ public record EventSearchRequestDto(
                 }
                 return durationMin <= durationMax;
         }
+
+        public boolean isEmpty() {
+                return name == null
+                        && placesMin == null
+                        && placesMax == null
+                        && dateStartAfter == null
+                        && dateStartBefore == null
+                        && costMin == null
+                        && costMax == null
+                        && durationMin == null
+                        && durationMax == null
+                        && locationId == null
+                        && eventStatus == null;
+        }
 }
