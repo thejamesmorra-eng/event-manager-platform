@@ -12,39 +12,35 @@ import dev.sorokin.eventmanager.mapper.EventMapper;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.model.UserRole;
 import dev.sorokin.eventmanager.repository.EventRepository;
-import dev.sorokin.eventmanager.repository.LocationRepository;
-import dev.sorokin.eventmanager.repository.UserRepository;
+import dev.sorokin.eventmanager.security.SecurityContextService;
 import dev.sorokin.eventmanager.specification.EventSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
 public class EventService {
 
-    private final UserRepository userRepository;
-    private final LocationRepository locationRepository;
+    private final UserService userService;
+    private final LocationService locationService;
+    private final PermissionService permissionService;
+    private final SecurityContextService securityContextService;
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
-    private final PermissionService permissionService;
 
     @Transactional
     public EventDto createEvent(EventCreateRequestDto request) {
-        String ownerLogin = SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
-        UserEntity ownerEntity = userRepository.findByLogin(ownerLogin)
-                .orElseThrow(() -> new UsernameNotFoundException("User with login '" + ownerLogin + "' was not found"));
+        String ownerLogin = securityContextService.getCurrentLogin();
+        UserEntity ownerEntity = userService.getEntityOrThrow(ownerLogin);
 
-        LocationEntity locationEntity = locationRepository.findById(request.locationId())
-                .orElseThrow(() -> new EntityNotFoundException("Location entity with id: %s not found"
-                        .formatted(request.locationId())));
+        LocationEntity locationEntity = locationService.getEntityOrThrow(request.locationId());
 
         if (request.maxPlaces() > locationEntity.getCapacity()) {
             throw new InvalidRequestException("Specified event max places (%s) exceed location capacity (%s)"
@@ -71,11 +67,10 @@ public class EventService {
     public void cancelEvent(Long id) {
         EventEntity eventEntity = getEntityOrThrow(id);
 
-        String login = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserRole role = UserRole.valueOf(SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-                .iterator().next().getAuthority().replace("ROLE_", ""));
+        String ownerLogin = securityContextService.getCurrentLogin();
+        UserRole role = securityContextService.getCurrentRole();
 
-        permissionService.checkPermissionOrThrow(eventEntity, login, role);
+        permissionService.checkPermissionOrThrow(eventEntity, ownerLogin, role);
 
         if (eventEntity.getStatus() != EventStatus.WAIT_START) {
             throw new InvalidRequestException(
@@ -96,11 +91,10 @@ public class EventService {
     public EventDto updateEvent(Long id, EventUpdateRequestDto request) {
         EventEntity eventEntity = getEntityOrThrow(id);
 
-        String login = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserRole role = UserRole.valueOf(SecurityContextHolder.getContext().getAuthentication().getAuthorities()
-                .iterator().next().getAuthority().replace("ROLE_", ""));
+        String ownerLogin = securityContextService.getCurrentLogin();
+        UserRole role = securityContextService.getCurrentRole();
 
-        permissionService.checkPermissionOrThrow(eventEntity, login, role);
+        permissionService.checkPermissionOrThrow(eventEntity, ownerLogin, role);
 
         if (request.isEmpty()) {
             return eventMapper.toResponse(eventEntity);
@@ -112,9 +106,7 @@ public class EventService {
         if (request.cost() != null) eventEntity.setCost(request.cost());
         if (request.duration() != null) eventEntity.setDurationMinutes(request.duration());
         if (request.locationId() != null) {
-            LocationEntity newLocation = locationRepository.findById(request.locationId())
-                    .orElseThrow(() -> new EntityNotFoundException("Location entity with id: %s not found"
-                            .formatted(request.locationId())));
+            LocationEntity newLocation = locationService.getEntityOrThrow(request.locationId());
             eventEntity.setLocation(newLocation);
         }
 
@@ -125,7 +117,7 @@ public class EventService {
             throw new InvalidRequestException("maxPlaces exceeds location capacity");
         }
 
-        checkOverlap(eventEntity.getLocation().getId(), id, request.date(), request.duration());
+        checkOverlap(eventEntity.getLocation().getId(), id, eventEntity.getStartAt(), eventEntity.getDurationMinutes());
 
         return eventMapper.toResponse(eventEntity);
     }
@@ -141,7 +133,7 @@ public class EventService {
         if (request.placesMin() != null) spec = spec.and(EventSpecification.placesGreaterThanOrEqual(request.placesMin()));
         if (request.placesMax() != null) spec = spec.and(EventSpecification.placesLessThanOrEqual(request.placesMax()));
         if (request.dateStartAfter() != null) spec = spec.and(EventSpecification.startAtAfter(request.dateStartAfter()));
-        if (request.dateStartBefore() != null) spec = spec.and(EventSpecification.startAtAfter(request.dateStartBefore()));
+        if (request.dateStartBefore() != null) spec = spec.and(EventSpecification.startAtBefore(request.dateStartBefore()));
         if (request.costMin() != null) spec = spec.and(EventSpecification.costGreaterThanOrEqual(request.costMin()));
         if (request.costMax() != null) spec = spec.and(EventSpecification.costLessThanOrEqual(request.costMax()));
         if (request.durationMin() != null) spec = spec.and(EventSpecification.durationGreaterThanOrEqual(request.durationMin()));
@@ -152,16 +144,11 @@ public class EventService {
         return eventMapper.toResponseList(eventRepository.findAll(spec));
     }
 
+    @Transactional(readOnly = true)
     public List<EventDto> getMyEvents() {
-        String ownerLogin = SecurityContextHolder.getContext().getAuthentication().getName();
-        UserEntity ownerEntity = userRepository.findByLogin(ownerLogin)
-                .orElseThrow(() -> new UsernameNotFoundException("User with login '" + ownerLogin + "' was not found"));
+        String ownerLogin = securityContextService.getCurrentLogin();
+        UserEntity ownerEntity = userService.getEntityOrThrow(ownerLogin);
         return eventMapper.toResponseList(eventRepository.findAllByOwnerId(ownerEntity.getId()));
-    }
-
-    private EventEntity getEntityOrThrow(Long id) {
-        return eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
     }
 
     private void checkOverlap(Long locationId,
@@ -174,7 +161,7 @@ public class EventService {
 
         for (EventEntity existingEvent : existingEvents) {
 
-            if (existingEvent.getId().equals(requestEventId)) {
+            if (Objects.equals(existingEvent.getId(), requestEventId)) {
                 continue;
             }
 
@@ -187,5 +174,10 @@ public class EventService {
                         .formatted(existingEvent.getId()));
             }
         }
+    }
+
+    private EventEntity getEntityOrThrow(Long id) {
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
     }
 }

@@ -43,4 +43,10 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("User entity with id: %s not found".formatted(id)));
         return userMapper.toResponse(userEntity);
     }
+
+    @Transactional(readOnly = true)
+    UserEntity getEntityOrThrow(String login) {
+        return userRepository.findByLogin(login)
+                .orElseThrow(() -> new EntityNotFoundException("User entity with login: %s not found".formatted(login)));
+    }
 }

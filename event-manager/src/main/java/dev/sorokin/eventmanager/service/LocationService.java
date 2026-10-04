@@ -66,12 +66,13 @@ public class LocationService {
         return locationMapper.toResponse(locationEntity);
     }
 
-    private boolean isLocationExists(String name, String address) {
-        return locationRepository.existsByNameAndAddress(name, address);
-    }
-
-    private LocationEntity getEntityOrThrow(Long id) {
+    @Transactional(readOnly = true)
+    LocationEntity getEntityOrThrow(Long id) {
         return locationRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Location entity with id: %s not found".formatted(id)));
+    }
+
+    private boolean isLocationExists(String name, String address) {
+        return locationRepository.existsByNameAndAddress(name, address);
     }
 }
