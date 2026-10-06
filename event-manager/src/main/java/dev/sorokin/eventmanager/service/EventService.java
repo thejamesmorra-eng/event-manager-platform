@@ -176,8 +176,15 @@ public class EventService {
         }
     }
 
-    private EventEntity getEntityOrThrow(Long id) {
+    @Transactional(readOnly = true)
+    EventEntity getEntityOrThrow(Long id) {
         return eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
+    }
+
+    @Transactional
+    EventEntity getEventByIdForUpdate(Long id) {
+        return eventRepository.getEventByIdForUpdate(id)
                 .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
     }
 }
