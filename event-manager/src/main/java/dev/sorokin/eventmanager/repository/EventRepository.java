@@ -21,4 +21,6 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM EventEntity e WHERE e.id = :id")
     Optional<EventEntity> getEventByIdForUpdate(@Param("id") Long id);
+
+    List<EventEntity> findAllByStatus(EventStatus status);
 }
