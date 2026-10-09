@@ -117,6 +117,10 @@ public class EventService {
             throw new InvalidRequestException("maxPlaces exceeds location capacity");
         }
 
+        if (eventEntity.getStatus() == EventStatus.STARTED && eventEntity.getStartAt().isAfter(LocalDateTime.now())) {
+            eventEntity.setStatus(EventStatus.WAIT_START);
+        }
+
         checkOverlap(eventEntity.getLocation().getId(), id, eventEntity.getStartAt(), eventEntity.getDurationMinutes());
 
         return eventMapper.toResponse(eventEntity);

@@ -17,10 +17,13 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
     List<EventEntity> findAllByOwnerId(Long ownerId);
     boolean existsByLocationId(Long locationId);
     List<EventEntity> findAllByLocationIdAndStatusIn(Long locationId, Collection<EventStatus> statuses);
+    List<EventEntity> findAllByStatus(EventStatus status);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM EventEntity e WHERE e.id = :id")
     Optional<EventEntity> getEventByIdForUpdate(@Param("id") Long id);
 
-    List<EventEntity> findAllByStatus(EventStatus status);
+    @Query("SELECT COALESCE(MAX(e.maxPlaces), 0) FROM EventEntity e " +
+            "WHERE e.location.id = :id AND e.status IN :statuses")
+    int findMaxPlacesByLocationId(@Param("id") Long id, @Param("statuses") Collection<EventStatus> statuses);
 }

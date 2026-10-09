@@ -4,8 +4,11 @@ import dev.sorokin.eventmanager.dto.request.LocationRequest;
 import dev.sorokin.eventmanager.dto.response.LocationResponse;
 import dev.sorokin.eventmanager.dto.response.PageResponse;
 import dev.sorokin.eventmanager.entity.LocationEntity;
+import dev.sorokin.eventmanager.exception.InvalidRequestException;
 import dev.sorokin.eventmanager.exception.LocationAlreadyExistsException;
 import dev.sorokin.eventmanager.mapper.LocationMapper;
+import dev.sorokin.eventmanager.model.EventStatus;
+import dev.sorokin.eventmanager.repository.EventRepository;
 import dev.sorokin.eventmanager.repository.LocationRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +17,14 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class LocationService {
 
     private final LocationRepository locationRepository;
+    private final EventRepository eventRepository;
     private final LocationMapper locationMapper;
 
     @Transactional(readOnly = true)
@@ -48,6 +54,11 @@ public class LocationService {
     @Transactional
     public void deleteLocation(Long id) {
         LocationEntity locationEntity = getEntityOrThrow(id);
+
+        if (eventRepository.existsByLocationId(id)) {
+            throw new InvalidRequestException("Location with id: %s has events. Deletion not allowed"
+                    .formatted(id));
+        }
         locationRepository.delete(locationEntity);
     }
 
@@ -62,6 +73,17 @@ public class LocationService {
                 );
             }
         }
+
+        int maxEventPlaces = eventRepository.findMaxPlacesByLocationId(
+                id,
+                List.of(EventStatus.WAIT_START, EventStatus.STARTED)
+        );
+        if (request.capacity() < maxEventPlaces) {
+            throw new InvalidRequestException(
+                    "The location’s capacity (%s) cannot be less than the capacity of the largest event (%s)."
+                            .formatted(request.capacity(), maxEventPlaces));
+        }
+
         locationMapper.updateEntity(request, locationEntity);
         return locationMapper.toResponse(locationEntity);
     }
