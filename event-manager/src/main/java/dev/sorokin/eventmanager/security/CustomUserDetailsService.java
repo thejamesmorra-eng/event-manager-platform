@@ -23,7 +23,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         return User.withUsername(userEntity.getLogin())
                    .password(userEntity.getPasswordHash())
-                   .authorities("ROLE_" + userEntity.getRole())
+                   .authorities(SecurityConstants.ROLE_PREFIX + userEntity.getRole().name())
                    .build();
     }
 }
