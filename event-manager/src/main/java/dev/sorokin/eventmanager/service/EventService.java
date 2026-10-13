@@ -10,9 +10,7 @@ import dev.sorokin.eventmanager.entity.UserEntity;
 import dev.sorokin.eventmanager.exception.InvalidRequestException;
 import dev.sorokin.eventmanager.mapper.EventMapper;
 import dev.sorokin.eventmanager.model.EventStatus;
-import dev.sorokin.eventmanager.model.UserRole;
 import dev.sorokin.eventmanager.repository.EventRepository;
-import dev.sorokin.eventmanager.security.SecurityContextService;
 import dev.sorokin.eventmanager.specification.EventSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +29,12 @@ public class EventService {
     private final UserService userService;
     private final LocationService locationService;
     private final PermissionService permissionService;
-    private final SecurityContextService securityContextService;
     private final EventRepository eventRepository;
     private final EventMapper eventMapper;
 
     @Transactional
     public EventDto createEvent(EventCreateRequestDto request) {
-        String ownerLogin = securityContextService.getCurrentLogin();
-        UserEntity ownerEntity = userService.getEntityOrThrow(ownerLogin);
+        UserEntity ownerEntity = userService.getCurrentUserEntity();
 
         LocationEntity locationEntity = locationService.getEntityOrThrow(request.locationId());
 
@@ -67,10 +63,7 @@ public class EventService {
     public void cancelEvent(Long id) {
         EventEntity eventEntity = getEntityOrThrow(id);
 
-        String ownerLogin = securityContextService.getCurrentLogin();
-        UserRole role = securityContextService.getCurrentRole();
-
-        permissionService.checkPermissionOrThrow(eventEntity, ownerLogin, role);
+        permissionService.checkCanModify(eventEntity);
 
         if (eventEntity.getStatus() != EventStatus.WAIT_START) {
             throw new InvalidRequestException(
@@ -91,13 +84,17 @@ public class EventService {
     public EventDto updateEvent(Long id, EventUpdateRequestDto request) {
         EventEntity eventEntity = getEntityOrThrow(id);
 
-        String ownerLogin = securityContextService.getCurrentLogin();
-        UserRole role = securityContextService.getCurrentRole();
-
-        permissionService.checkPermissionOrThrow(eventEntity, ownerLogin, role);
+        permissionService.checkCanModify(eventEntity);
 
         if (request.isEmpty()) {
             return eventMapper.toResponse(eventEntity);
+        }
+
+        if (eventEntity.getStatus() != EventStatus.WAIT_START) {
+            throw new InvalidRequestException(
+                    "Cannot update event with status: %s. Only WAIT_START events can be updated"
+                            .formatted(eventEntity.getStatus())
+            );
         }
 
         if (request.name() != null) eventEntity.setName(request.name());
@@ -115,10 +112,6 @@ public class EventService {
         }
         if (eventEntity.getMaxPlaces() > eventEntity.getLocation().getCapacity()) {
             throw new InvalidRequestException("maxPlaces exceeds location capacity");
-        }
-
-        if (eventEntity.getStatus() == EventStatus.STARTED && eventEntity.getStartAt().isAfter(LocalDateTime.now())) {
-            eventEntity.setStatus(EventStatus.WAIT_START);
         }
 
         checkOverlap(eventEntity.getLocation().getId(), id, eventEntity.getStartAt(), eventEntity.getDurationMinutes());
@@ -150,8 +143,7 @@ public class EventService {
 
     @Transactional(readOnly = true)
     public List<EventDto> getMyEvents() {
-        String ownerLogin = securityContextService.getCurrentLogin();
-        UserEntity ownerEntity = userService.getEntityOrThrow(ownerLogin);
+        UserEntity ownerEntity = userService.getCurrentUserEntity();
         return eventMapper.toResponseList(eventRepository.findAllByOwnerId(ownerEntity.getId()));
     }
 

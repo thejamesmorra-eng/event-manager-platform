@@ -8,7 +8,6 @@ import dev.sorokin.eventmanager.exception.InvalidRequestException;
 import dev.sorokin.eventmanager.mapper.EventMapper;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.RegistrationRepository;
-import dev.sorokin.eventmanager.security.SecurityContextService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,14 +21,12 @@ public class RegistrationService {
 
     private final EventService eventService;
     private final UserService userService;
-    private final SecurityContextService securityContextService;
     private final RegistrationRepository registrationRepository;
     private final EventMapper eventMapper;
 
     @Transactional
     public void registerUserOnEvent(Long eventId) {
-        String userLogin = securityContextService.getCurrentLogin();
-        UserEntity userEntity = userService.getEntityOrThrow(userLogin);
+        UserEntity userEntity = userService.getCurrentUserEntity();
 
         EventEntity eventEntity = eventService.getEventByIdForUpdate(eventId);
 
@@ -64,8 +61,7 @@ public class RegistrationService {
 
     @Transactional
     public void cancelRegistration(Long eventId) {
-        String userLogin = securityContextService.getCurrentLogin();
-        UserEntity userEntity = userService.getEntityOrThrow(userLogin);
+        UserEntity userEntity = userService.getCurrentUserEntity();
 
         EventEntity eventEntity = eventService.getEventByIdForUpdate(eventId);
 
@@ -91,8 +87,7 @@ public class RegistrationService {
 
     @Transactional(readOnly = true)
     public List<EventDto> getMyRegistrations() {
-        String userLogin = securityContextService.getCurrentLogin();
-        UserEntity userEntity = userService.getEntityOrThrow(userLogin);
+        UserEntity userEntity = userService.getCurrentUserEntity();
 
         List<RegistrationEntity> registrations = registrationRepository.findAllByUserId(userEntity.getId());
 

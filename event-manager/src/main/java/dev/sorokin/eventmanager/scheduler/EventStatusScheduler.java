@@ -15,33 +15,27 @@ import java.util.List;
 @RequiredArgsConstructor
 public class EventStatusScheduler {
 
-    private static final long RATE = 60_000;
-
     private final EventRepository eventRepository;
 
     @Transactional
-    @Scheduled(fixedRate = RATE)
-    public void updateStartedStatuses() {
-        List<EventEntity> entityList = eventRepository.findAllByStatus(EventStatus.STARTED);
+    @Scheduled(cron = "${scheduler.event-status.cron}")
+    public void updateWaitStartStatuses() {
+        List<EventEntity> entityList = eventRepository.findAllByStatusAndStartAtLessThanEqual(
+                EventStatus.WAIT_START,
+                LocalDateTime.now());
 
-        LocalDateTime now = LocalDateTime.now();
         for (EventEntity entity : entityList) {
-            if (!entity.getStartAt().plusMinutes(entity.getDurationMinutes()).isAfter(now)) {
-                entity.setStatus(EventStatus.FINISHED);
-            }
+            entity.setStatus(EventStatus.STARTED);
         }
     }
 
     @Transactional
-    @Scheduled(fixedRate = RATE)
-    public void updateWaitStartStatuses() {
-        List<EventEntity> entityList = eventRepository.findAllByStatus(EventStatus.WAIT_START);
+    @Scheduled(cron = "${scheduler.event-status.cron}")
+    public void updateStartedStatuses() {
+        List<EventEntity> entityList = eventRepository.findStartedToFinish(LocalDateTime.now());
 
-        LocalDateTime now = LocalDateTime.now();
         for (EventEntity entity : entityList) {
-            if (!entity.getStartAt().isAfter(now)) {
-                entity.setStatus(EventStatus.STARTED);
-            }
+            entity.setStatus(EventStatus.FINISHED);
         }
     }
 }

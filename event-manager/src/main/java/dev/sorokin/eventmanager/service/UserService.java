@@ -7,6 +7,7 @@ import dev.sorokin.eventmanager.exception.LoginAlreadyExistsException;
 import dev.sorokin.eventmanager.mapper.UserMapper;
 import dev.sorokin.eventmanager.model.UserRole;
 import dev.sorokin.eventmanager.repository.UserRepository;
+import dev.sorokin.eventmanager.security.SecurityContextService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserMapper userMapper;
+    private final SecurityContextService securityContextService;
 
     @Transactional
     public UserResponse registerUser(UserRegistration userRegistration) {
@@ -45,7 +47,8 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    UserEntity getEntityOrThrow(String login) {
+    UserEntity getCurrentUserEntity() {
+        String login = securityContextService.getCurrentLogin();
         return userRepository.findByLogin(login)
                 .orElseThrow(() -> new EntityNotFoundException("User entity with login: %s not found".formatted(login)));
     }

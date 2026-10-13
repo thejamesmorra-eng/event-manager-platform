@@ -39,3 +39,7 @@ logging:
 springdoc:
   swagger-ui:
     path: /swagger-ui/index.html
+
+scheduler:
+  event-status:
+    cron: "0 * * * * *"

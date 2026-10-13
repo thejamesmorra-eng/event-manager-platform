@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,12 @@ public interface EventRepository extends JpaRepository<EventEntity, Long>, JpaSp
     List<EventEntity> findAllByOwnerId(Long ownerId);
     boolean existsByLocationId(Long locationId);
     List<EventEntity> findAllByLocationIdAndStatusIn(Long locationId, Collection<EventStatus> statuses);
-    List<EventEntity> findAllByStatus(EventStatus status);
+    List<EventEntity> findAllByStatusAndStartAtLessThanEqual(EventStatus status, LocalDateTime now);
+
+    @Query(value = "SELECT * FROM events WHERE status = 'STARTED' " +
+            "AND start_at + make_interval(mins => duration_minutes) <= :now",
+            nativeQuery = true)
+    List<EventEntity> findStartedToFinish(@Param("now") LocalDateTime now);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM EventEntity e WHERE e.id = :id")
