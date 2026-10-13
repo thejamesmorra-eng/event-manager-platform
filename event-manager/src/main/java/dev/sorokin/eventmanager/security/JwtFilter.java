@@ -21,7 +21,6 @@ import java.util.List;
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
 
-    private static final String BEARER_PREFIX = "Bearer ";
     private final JwtService jwtService;
 
     @Override
@@ -33,8 +32,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
         final String authorizationHeader = request.getHeader(HttpHeaders.AUTHORIZATION);
 
-        if (authorizationHeader != null && authorizationHeader.startsWith(BEARER_PREFIX)) {
-            final String jwt = authorizationHeader.substring(BEARER_PREFIX.length());
+        if (authorizationHeader != null && authorizationHeader.startsWith(SecurityConstants.BEARER_PREFIX)) {
+            final String jwt = authorizationHeader.substring(SecurityConstants.BEARER_PREFIX.length());
 
             if (jwtService.isTokenValid(jwt)) {
 
@@ -43,7 +42,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     final String login = jwtService.getLoginFromToken(jwt);
                     final String role = jwtService.getRoleFromToken(jwt);
 
-                    var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + role));
+                    var authorities = List.of(new SimpleGrantedAuthority(SecurityConstants.ROLE_PREFIX + role));
                     var authentication = new UsernamePasswordAuthenticationToken(login, null, authorities);
 
                     SecurityContextHolder.getContext().setAuthentication(authentication);

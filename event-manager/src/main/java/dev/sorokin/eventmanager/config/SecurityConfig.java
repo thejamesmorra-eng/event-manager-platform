@@ -35,6 +35,28 @@ public class SecurityConfig {
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
+                        // Registrations
+                        .requestMatchers(HttpMethod.GET, "/events/registrations/my")
+                        .hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/events/registrations/**")
+                        .hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/events/registrations/cancel/**")
+                        .hasRole("USER")
+
+                        // Events
+                        .requestMatchers(HttpMethod.POST, "/events/search")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/events/my")
+                        .hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/events")
+                        .hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/events/**")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.PUT, "/events/**")
+                        .hasAnyRole("ADMIN", "USER")
+                        .requestMatchers(HttpMethod.GET, "/events/**")
+                        .hasAnyRole("ADMIN", "USER")
+
                         // Locations
                         .requestMatchers(HttpMethod.GET, "/locations", "/locations/**")
                         .hasAnyRole("ADMIN", "USER")

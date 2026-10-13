@@ -5,3 +5,9 @@ databaseChangeLog:
       file: db/changelog/changesets/0002-add-description-to-locations.sql
   - include:
       file: db/changelog/changesets/0003-create-users-table.sql
+  - include:
+      file: db/changelog/changesets/0004-create-events-table.sql
+  - include:
+      file: db/changelog/changesets/0005-create-registrations-table.sql
+  - include:
+      file: db/changelog/changesets/0006-add-cost-to-events.sql
