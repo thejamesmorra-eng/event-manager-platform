@@ -1,0 +1,20 @@
+package dev.sorokin.eventcommon.kafka;
+
+import dev.sorokin.eventcommon.kafka.enums.EventType;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+public record EventChangeKafkaMessageDto(
+        UUID messageId,
+        EventType eventType,
+        Long eventId,
+        Instant occurredAt,
+        Long ownerId,
+        Long changedById,
+        List<Long> subscribers,
+        List<ChangeItemDto> changes
+
+) {
+}
