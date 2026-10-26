@@ -1,5 +1,8 @@
 package dev.sorokin.eventmanager.service;
 
+import dev.sorokin.eventcommon.kafka.ChangeItemDto;
+import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.enums.EventType;
 import dev.sorokin.eventmanager.dto.request.EventCreateRequestDto;
 import dev.sorokin.eventmanager.dto.request.EventSearchRequestDto;
 import dev.sorokin.eventmanager.dto.request.EventUpdateRequestDto;
@@ -11,6 +14,8 @@ import dev.sorokin.eventmanager.exception.InvalidRequestException;
 import dev.sorokin.eventmanager.mapper.EventMapper;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.EventRepository;
+import dev.sorokin.eventmanager.repository.RegistrationRepository;
+import dev.sorokin.eventmanager.security.SecurityContextService;
 import dev.sorokin.eventmanager.specification.EventSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +34,10 @@ public class EventService {
     private final UserService userService;
     private final LocationService locationService;
     private final PermissionService permissionService;
+    private final EventKafkaPublisherService eventKafkaPublisherService;
+    private final SecurityContextService securityContextService;
     private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
     private final EventMapper eventMapper;
 
     @Transactional
@@ -72,6 +80,19 @@ public class EventService {
             );
         }
         eventEntity.setStatus(EventStatus.CANCELLED);
+
+        Long changeById = securityContextService.isChangedBySystem()
+                ? null
+                : userService.getCurrentUserEntity().getId();
+
+        eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
+                EventType.EVENT_CANCELLED,
+                eventEntity.getId(),
+                eventEntity.getOwner().getId(),
+                changeById,
+                registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
+                List.of(new ChangeItemDto("status", EventStatus.WAIT_START.name(), EventStatus.CANCELLED.name()))
+        ));
     }
 
     @Transactional(readOnly = true)
@@ -97,13 +118,31 @@ public class EventService {
             );
         }
 
-        if (request.name() != null) eventEntity.setName(request.name());
-        if (request.maxPlaces() != null) eventEntity.setMaxPlaces(request.maxPlaces());
-        if (request.date() != null) eventEntity.setStartAt(request.date());
-        if (request.cost() != null) eventEntity.setCost(request.cost());
-        if (request.duration() != null) eventEntity.setDurationMinutes(request.duration());
+        EventChangeTracker eventChangeTracker = new EventChangeTracker();
+
+        if (request.name() != null) {
+            eventChangeTracker.trackChanges("name", eventEntity.getName(), request.name());
+            eventEntity.setName(request.name());
+        }
+        if (request.maxPlaces() != null) {
+            eventChangeTracker.trackChanges("maxPlaces", eventEntity.getMaxPlaces(), request.maxPlaces());
+            eventEntity.setMaxPlaces(request.maxPlaces());
+        }
+        if (request.date() != null) {
+            eventChangeTracker.trackChanges("date", eventEntity.getStartAt(), request.date());
+            eventEntity.setStartAt(request.date());
+        }
+        if (request.cost() != null) {
+            eventChangeTracker.trackChanges("cost", eventEntity.getCost(), request.cost());
+            eventEntity.setCost(request.cost());
+        }
+        if (request.duration() != null) {
+            eventChangeTracker.trackChanges("duration", eventEntity.getDurationMinutes(), request.duration());
+            eventEntity.setDurationMinutes(request.duration());
+        }
         if (request.locationId() != null) {
             LocationEntity newLocation = locationService.getEntityOrThrow(request.locationId());
+            eventChangeTracker.trackChanges("locationId", eventEntity.getLocation().getId(), request.locationId());
             eventEntity.setLocation(newLocation);
         }
 
@@ -115,6 +154,21 @@ public class EventService {
         }
 
         checkOverlap(eventEntity.getLocation().getId(), id, eventEntity.getStartAt(), eventEntity.getDurationMinutes());
+
+        Long changeById = securityContextService.isChangedBySystem()
+                ? null
+                : userService.getCurrentUserEntity().getId();
+
+        if (eventChangeTracker.hasChanges()) {
+            eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
+                    EventType.EVENT_UPDATED,
+                    eventEntity.getId(),
+                    eventEntity.getOwner().getId(),
+                    changeById,
+                    registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
+                    eventChangeTracker.getChanges()
+            ));
+        }
 
         return eventMapper.toResponse(eventEntity);
     }

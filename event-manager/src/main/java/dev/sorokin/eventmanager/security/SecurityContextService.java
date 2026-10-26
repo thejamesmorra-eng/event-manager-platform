@@ -15,4 +15,8 @@ public class SecurityContextService {
         return UserRole.valueOf(SecurityContextHolder.getContext().getAuthentication().getAuthorities()
                 .iterator().next().getAuthority().replace(SecurityConstants.ROLE_PREFIX, ""));
     }
+
+    public boolean isChangedBySystem() {
+        return SecurityContextHolder.getContext().getAuthentication() == null;
+    }
 }

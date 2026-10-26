@@ -23,7 +23,8 @@ public class EventKafkaPublisherService {
 
     public void publishEventChange(EventChangeKafkaMessageDto message) {
         log.debug("Publish event changes: {}", message);
-        CompletableFuture<SendResult<UUID, EventChangeKafkaMessageDto>> result = kafkaTemplate.send(topic, message.messageId(), message);
+        CompletableFuture<SendResult<UUID, EventChangeKafkaMessageDto>> result = kafkaTemplate.send(
+                topic, message.messageId(), message);
         result.whenComplete((success, ex) -> {
             if (ex != null) {
                 log.error("Failed to publish event to kafka: {}", message.messageId(), ex);

@@ -17,4 +17,21 @@ public record EventChangeKafkaMessageDto(
         List<ChangeItemDto> changes
 
 ) {
+    public EventChangeKafkaMessageDto(
+            EventType eventType,
+            Long eventId,
+            Long ownerId,
+            Long changedById,
+            List<Long> subscribers,
+            List<ChangeItemDto> changes
+    ) {
+        this(UUID.randomUUID(),
+                eventType,
+                eventId,
+                Instant.now(),
+                ownerId,
+                changedById,
+                subscribers,
+                changes);
+    }
 }

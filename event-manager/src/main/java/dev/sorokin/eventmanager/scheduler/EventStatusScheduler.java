@@ -1,8 +1,13 @@
 package dev.sorokin.eventmanager.scheduler;
 
+import dev.sorokin.eventcommon.kafka.ChangeItemDto;
+import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.enums.EventType;
 import dev.sorokin.eventmanager.entity.EventEntity;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.EventRepository;
+import dev.sorokin.eventmanager.repository.RegistrationRepository;
+import dev.sorokin.eventmanager.service.EventKafkaPublisherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -16,6 +21,8 @@ import java.util.List;
 public class EventStatusScheduler {
 
     private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
+    private final EventKafkaPublisherService eventKafkaPublisherService;
 
     @Transactional
     @Scheduled(cron = "${scheduler.event-status.cron}")
@@ -26,6 +33,7 @@ public class EventStatusScheduler {
 
         for (EventEntity entity : entityList) {
             entity.setStatus(EventStatus.STARTED);
+            publishEventStatusUpdate(entity, EventStatus.WAIT_START, EventStatus.STARTED);
         }
     }
 
@@ -36,6 +44,18 @@ public class EventStatusScheduler {
 
         for (EventEntity entity : entityList) {
             entity.setStatus(EventStatus.FINISHED);
+            publishEventStatusUpdate(entity, EventStatus.STARTED, EventStatus.FINISHED);
         }
+    }
+
+    private void publishEventStatusUpdate(EventEntity entity, EventStatus oldStatus, EventStatus newStatus) {
+        eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
+                EventType.EVENT_UPDATED,
+                entity.getId(),
+                entity.getOwner().getId(),
+                null,
+                registrationRepository.findAllUsersIdByEventId(entity.getId()),
+                List.of(new ChangeItemDto("status", oldStatus.name(), newStatus.name()))
+        ));
     }
 }
