@@ -7,7 +7,7 @@ import dev.sorokin.eventmanager.entity.EventEntity;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.EventRepository;
 import dev.sorokin.eventmanager.repository.RegistrationRepository;
-import dev.sorokin.eventmanager.service.EventKafkaPublisherService;
+import dev.sorokin.eventmanager.kafka.EventKafkaPublisherService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;

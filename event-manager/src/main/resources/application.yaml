@@ -26,6 +26,10 @@ spring:
       key-serializer: org.apache.kafka.common.serialization.UUIDSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
 
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
 kafka:
   topic:
     event-changes: "event-changes"

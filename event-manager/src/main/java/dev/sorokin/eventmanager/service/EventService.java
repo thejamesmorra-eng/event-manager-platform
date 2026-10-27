@@ -11,11 +11,11 @@ import dev.sorokin.eventmanager.entity.EventEntity;
 import dev.sorokin.eventmanager.entity.LocationEntity;
 import dev.sorokin.eventmanager.entity.UserEntity;
 import dev.sorokin.eventmanager.exception.InvalidRequestException;
+import dev.sorokin.eventmanager.kafka.EventKafkaPublisherService;
 import dev.sorokin.eventmanager.mapper.EventMapper;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.EventRepository;
 import dev.sorokin.eventmanager.repository.RegistrationRepository;
-import dev.sorokin.eventmanager.security.SecurityContextService;
 import dev.sorokin.eventmanager.specification.EventSpecification;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -35,7 +35,6 @@ public class EventService {
     private final LocationService locationService;
     private final PermissionService permissionService;
     private final EventKafkaPublisherService eventKafkaPublisherService;
-    private final SecurityContextService securityContextService;
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
     private final EventMapper eventMapper;
@@ -81,15 +80,11 @@ public class EventService {
         }
         eventEntity.setStatus(EventStatus.CANCELLED);
 
-        Long changeById = securityContextService.isChangedBySystem()
-                ? null
-                : userService.getCurrentUserEntity().getId();
-
         eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
                 EventType.EVENT_CANCELLED,
                 eventEntity.getId(),
                 eventEntity.getOwner().getId(),
-                changeById,
+                userService.getCurrentUserEntity().getId(),
                 registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
                 List.of(new ChangeItemDto("status", EventStatus.WAIT_START.name(), EventStatus.CANCELLED.name()))
         ));
@@ -155,16 +150,12 @@ public class EventService {
 
         checkOverlap(eventEntity.getLocation().getId(), id, eventEntity.getStartAt(), eventEntity.getDurationMinutes());
 
-        Long changeById = securityContextService.isChangedBySystem()
-                ? null
-                : userService.getCurrentUserEntity().getId();
-
         if (eventChangeTracker.hasChanges()) {
             eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
                     EventType.EVENT_UPDATED,
                     eventEntity.getId(),
                     eventEntity.getOwner().getId(),
-                    changeById,
+                    userService.getCurrentUserEntity().getId(),
                     registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
                     eventChangeTracker.getChanges()
             ));

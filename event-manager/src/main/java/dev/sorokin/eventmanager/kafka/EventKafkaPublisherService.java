@@ -1,4 +1,4 @@
-package dev.sorokin.eventmanager.service;
+package dev.sorokin.eventmanager.kafka;
 
 import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
 import lombok.RequiredArgsConstructor;
