@@ -34,4 +34,14 @@ public class NotificationEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "payload_id", nullable = false)
     private NotificationEventPayloadEntity payload;
+
+    public NotificationEntity(
+            Long userId,
+            NotificationEventPayloadEntity payload) {
+        this.userId = userId;
+        this.isRead = false;
+        this.createdAt = Instant.now();
+        this.readAt = null;
+        this.payload = payload;
+    }
 }
