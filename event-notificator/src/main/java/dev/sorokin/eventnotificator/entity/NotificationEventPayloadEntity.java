@@ -2,13 +2,18 @@ package dev.sorokin.eventnotificator.entity;
 
 import dev.sorokin.eventcommon.kafka.enums.EventType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.Instant;
 import java.util.UUID;
 
 @Entity
 @Table(name = "notification_event_payloads")
-// добавить Lombok
+@Getter
+@Setter
+@NoArgsConstructor
 public class NotificationEventPayloadEntity {
 
     @Id
@@ -26,7 +31,7 @@ public class NotificationEventPayloadEntity {
     private Long eventId;
 
     @Column(name = "occurred_at", nullable = false)
-    private Instant occurred_at;
+    private Instant occurredAt;
 
     @Column(name = "changed_by_id")
     private Long changedById;
@@ -36,4 +41,16 @@ public class NotificationEventPayloadEntity {
 
     @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
     private String payload;
+
+    @PrePersist
+    private void validate() {
+        if (messageId == null ||
+                eventType == null ||
+                eventId == null ||
+                occurredAt == null ||
+                ownerId == null ||
+                payload == null) {
+            throw new IllegalStateException("Invalid payload entity");
+        }
+    }
 }
