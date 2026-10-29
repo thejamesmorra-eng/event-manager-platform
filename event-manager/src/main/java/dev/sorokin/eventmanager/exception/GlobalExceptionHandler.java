@@ -1,5 +1,6 @@
 package dev.sorokin.eventmanager.exception;
 
+import dev.sorokin.eventcommon.exception.ErrorMessageResponse;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

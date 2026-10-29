@@ -1,6 +1,6 @@
 package dev.sorokin.eventmanager.kafka;
 
-import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.dto.EventChangeKafkaMessageDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;

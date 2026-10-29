@@ -2,7 +2,7 @@ package dev.sorokin.eventnotificator.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.dto.EventChangeKafkaMessageDto;
 import dev.sorokin.eventnotificator.entity.NotificationEntity;
 import dev.sorokin.eventnotificator.entity.NotificationEventPayloadEntity;
 import dev.sorokin.eventnotificator.repository.NotificationEventPayloadRepository;

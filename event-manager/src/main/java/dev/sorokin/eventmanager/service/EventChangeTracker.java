@@ -1,6 +1,6 @@
 package dev.sorokin.eventmanager.service;
 
-import dev.sorokin.eventcommon.kafka.ChangeItemDto;
+import dev.sorokin.eventcommon.kafka.dto.ChangeItemDto;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package dev.sorokin.eventcommon.kafka;
+package dev.sorokin.eventcommon.kafka.dto;
 
 import dev.sorokin.eventcommon.kafka.enums.EventType;
 

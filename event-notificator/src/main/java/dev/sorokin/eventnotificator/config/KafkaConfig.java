@@ -1,7 +1,7 @@
 package dev.sorokin.eventnotificator.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.dto.EventChangeKafkaMessageDto;
 import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

@@ -1,6 +1,6 @@
 package dev.sorokin.eventnotificator.kafka;
 
-import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.dto.EventChangeKafkaMessageDto;
 import dev.sorokin.eventnotificator.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

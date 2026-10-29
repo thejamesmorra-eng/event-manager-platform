@@ -1,7 +1,7 @@
 package dev.sorokin.eventmanager.scheduler;
 
-import dev.sorokin.eventcommon.kafka.ChangeItemDto;
-import dev.sorokin.eventcommon.kafka.EventChangeKafkaMessageDto;
+import dev.sorokin.eventcommon.kafka.dto.ChangeItemDto;
+import dev.sorokin.eventcommon.kafka.dto.EventChangeKafkaMessageDto;
 import dev.sorokin.eventcommon.kafka.enums.EventType;
 import dev.sorokin.eventmanager.entity.EventEntity;
 import dev.sorokin.eventmanager.model.EventStatus;
