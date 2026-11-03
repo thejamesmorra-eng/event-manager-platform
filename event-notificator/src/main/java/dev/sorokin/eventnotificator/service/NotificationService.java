@@ -3,8 +3,10 @@ package dev.sorokin.eventnotificator.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import dev.sorokin.eventcommon.kafka.dto.EventChangeKafkaMessageDto;
+import dev.sorokin.eventnotificator.dto.response.NotificationResponse;
 import dev.sorokin.eventnotificator.entity.NotificationEntity;
 import dev.sorokin.eventnotificator.entity.NotificationEventPayloadEntity;
+import dev.sorokin.eventnotificator.mapper.NotificationMapper;
 import dev.sorokin.eventnotificator.repository.NotificationEventPayloadRepository;
 import dev.sorokin.eventnotificator.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +25,7 @@ public class NotificationService {
 
     private final NotificationEventPayloadRepository payloadRepository;
     private final NotificationRepository notificationRepository;
+    private final NotificationMapper notificationMapper;
     private final ObjectMapper objectMapper;
 
     @Transactional
@@ -60,5 +64,26 @@ public class NotificationService {
             notifications.add(notificationEntity);
         }
         notificationRepository.saveAll(notifications);
+    }
+
+    @Transactional(readOnly = true)
+    public List<NotificationResponse> getUnreadNotifications(Long userId) {
+        List<NotificationEntity> entities = notificationRepository.findAllByUserIdAndIsReadIsFalse(userId);
+        return notificationMapper.toResponseList(entities);
+    }
+
+    @Transactional
+    public void markAsRead(Long userId, List<Long> notificationIds) {
+        List<NotificationEntity> notificationEntities = notificationRepository.findAllByNotificationIdInAndUserIdAndIsReadIsFalse(
+                notificationIds, userId
+        );
+
+        if (!notificationEntities.isEmpty()) {
+            for (NotificationEntity entity : notificationEntities) {
+                entity.setIsRead(true);
+                entity.setReadAt(Instant.now());
+            }
+            notificationRepository.saveAll(notificationEntities);
+        }
     }
 }
