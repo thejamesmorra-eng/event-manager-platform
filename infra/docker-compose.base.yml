@@ -18,5 +18,23 @@ services:
     volumes:
       - event_manager_pg_data:/var/lib/postgresql/data
 
+  notificator-postgres:
+    image: postgres:16
+    container_name: event-notificator-postgres
+    environment:
+      POSTGRES_DB: event_notificator
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d event_notificator" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - event_notificator_pg_data:/var/lib/postgresql/data
+
 volumes:
   event_manager_pg_data:
+  event_notificator_pg_data:

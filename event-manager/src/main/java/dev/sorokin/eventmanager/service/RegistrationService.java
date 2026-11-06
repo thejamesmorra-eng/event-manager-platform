@@ -84,7 +84,6 @@ public class RegistrationService {
         }
     }
 
-
     @Transactional(readOnly = true)
     public List<EventDto> getMyRegistrations() {
         UserEntity userEntity = userService.getCurrentUserEntity();

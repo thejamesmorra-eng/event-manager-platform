@@ -40,10 +40,6 @@ public class JwtService {
         return getClaims(jwt).getSubject();
     }
 
-    public Long getUserIdFromToken(String jwt) {
-        return getClaims(jwt).get("userId", Long.class);
-    }
-
     public String getRoleFromToken(String jwt) {
         return getClaims(jwt).get("role", String.class);
     }
