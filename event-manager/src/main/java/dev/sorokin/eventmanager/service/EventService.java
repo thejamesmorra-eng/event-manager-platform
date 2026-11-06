@@ -83,6 +83,7 @@ public class EventService {
         eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
                 EventType.EVENT_CANCELLED,
                 eventEntity.getId(),
+                eventEntity.getName(),
                 eventEntity.getOwner().getId(),
                 userService.getCurrentUserEntity().getId(),
                 registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
@@ -154,6 +155,7 @@ public class EventService {
             eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
                     EventType.EVENT_UPDATED,
                     eventEntity.getId(),
+                    eventEntity.getName(),
                     eventEntity.getOwner().getId(),
                     userService.getCurrentUserEntity().getId(),
                     registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),

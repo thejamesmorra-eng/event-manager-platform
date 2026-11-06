@@ -32,6 +32,9 @@ public class NotificationEventPayloadEntity {
     @Column(name = "event_id", nullable = false)
     private Long eventId;
 
+    @Column(name = "event_name", nullable = false)
+    private String eventName;
+
     @Column(name = "occurred_at", nullable = false)
     private Instant occurredAt;
 
@@ -50,6 +53,7 @@ public class NotificationEventPayloadEntity {
         if (messageId == null ||
                 eventType == null ||
                 eventId == null ||
+                eventName == null ||
                 occurredAt == null ||
                 ownerId == null ||
                 payload == null) {

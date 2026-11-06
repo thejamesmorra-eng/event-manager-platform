@@ -44,7 +44,7 @@ public abstract class NotificationMapper {
                     payloadEntity.getOccurredAt(),
                     payloadEntity.getChangedById(),
                     payloadEntity.getOwnerId(),
-                    null,
+                    payloadEntity.getEventName(),
                     changes
             );
         } catch (JsonProcessingException e) {

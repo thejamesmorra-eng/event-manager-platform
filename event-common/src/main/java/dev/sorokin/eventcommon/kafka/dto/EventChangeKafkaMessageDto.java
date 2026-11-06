@@ -10,6 +10,7 @@ public record EventChangeKafkaMessageDto(
         UUID messageId,
         EventType eventType,
         Long eventId,
+        String eventName,
         Instant occurredAt,
         Long ownerId,
         Long changedById,
@@ -20,6 +21,7 @@ public record EventChangeKafkaMessageDto(
     public EventChangeKafkaMessageDto(
             EventType eventType,
             Long eventId,
+            String eventName,
             Long ownerId,
             Long changedById,
             List<Long> subscribers,
@@ -28,6 +30,7 @@ public record EventChangeKafkaMessageDto(
         this(UUID.randomUUID(),
                 eventType,
                 eventId,
+                eventName,
                 Instant.now(),
                 ownerId,
                 changedById,

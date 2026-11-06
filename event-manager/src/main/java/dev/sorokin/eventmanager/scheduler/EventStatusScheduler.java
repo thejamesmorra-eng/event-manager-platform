@@ -52,6 +52,7 @@ public class EventStatusScheduler {
         eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
                 EventType.EVENT_UPDATED,
                 entity.getId(),
+                entity.getName(),
                 entity.getOwner().getId(),
                 null,
                 registrationRepository.findAllUsersIdByEventId(entity.getId()),

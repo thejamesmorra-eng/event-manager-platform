@@ -48,6 +48,7 @@ public class NotificationService {
         payloadEntity.setMessageId(message.messageId());
         payloadEntity.setEventType(message.eventType());
         payloadEntity.setEventId(message.eventId());
+        payloadEntity.setEventName(message.eventName());
         payloadEntity.setOccurredAt(message.occurredAt());
         payloadEntity.setChangedById(message.changedById());
         payloadEntity.setOwnerId(message.ownerId());
