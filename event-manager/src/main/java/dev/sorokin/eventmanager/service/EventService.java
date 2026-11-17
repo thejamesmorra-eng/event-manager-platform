@@ -11,7 +11,6 @@ import dev.sorokin.eventmanager.entity.EventEntity;
 import dev.sorokin.eventmanager.entity.LocationEntity;
 import dev.sorokin.eventmanager.entity.UserEntity;
 import dev.sorokin.eventmanager.exception.InvalidRequestException;
-import dev.sorokin.eventmanager.kafka.EventKafkaPublisherService;
 import dev.sorokin.eventmanager.mapper.EventMapper;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.EventRepository;
@@ -34,7 +33,7 @@ public class EventService {
     private final UserService userService;
     private final LocationService locationService;
     private final PermissionService permissionService;
-    private final EventKafkaPublisherService eventKafkaPublisherService;
+    private final OutboxService outboxService;
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
     private final EventMapper eventMapper;
@@ -80,7 +79,7 @@ public class EventService {
         }
         eventEntity.setStatus(EventStatus.CANCELLED);
 
-        eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
+        EventChangeKafkaMessageDto message = new EventChangeKafkaMessageDto(
                 EventType.EVENT_CANCELLED,
                 eventEntity.getId(),
                 eventEntity.getName(),
@@ -88,7 +87,8 @@ public class EventService {
                 userService.getCurrentUserEntity().getId(),
                 registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
                 List.of(new ChangeItemDto("status", EventStatus.WAIT_START.name(), EventStatus.CANCELLED.name()))
-        ));
+        );
+        outboxService.saveToOutbox(message);
     }
 
     @Transactional(readOnly = true)
@@ -152,7 +152,7 @@ public class EventService {
         checkOverlap(eventEntity.getLocation().getId(), id, eventEntity.getStartAt(), eventEntity.getDurationMinutes());
 
         if (eventChangeTracker.hasChanges()) {
-            eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
+            EventChangeKafkaMessageDto message = new EventChangeKafkaMessageDto(
                     EventType.EVENT_UPDATED,
                     eventEntity.getId(),
                     eventEntity.getName(),
@@ -160,9 +160,9 @@ public class EventService {
                     userService.getCurrentUserEntity().getId(),
                     registrationRepository.findAllUsersIdByEventId(eventEntity.getId()),
                     eventChangeTracker.getChanges()
-            ));
+            );
+            outboxService.saveToOutbox(message);
         }
-
         return eventMapper.toResponse(eventEntity);
     }
 
@@ -194,6 +194,18 @@ public class EventService {
         return eventMapper.toResponseList(eventRepository.findAllByOwnerId(ownerEntity.getId()));
     }
 
+    @Transactional(readOnly = true)
+    EventEntity getEntityOrThrow(Long id) {
+        return eventRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
+    }
+
+    @Transactional
+    EventEntity getEventByIdForUpdate(Long id) {
+        return eventRepository.getEventByIdForUpdate(id)
+                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
+    }
+
     private void checkOverlap(Long locationId,
                               Long requestEventId,
                               LocalDateTime requestEventStart,
@@ -217,17 +229,5 @@ public class EventService {
                         .formatted(existingEvent.getId()));
             }
         }
-    }
-
-    @Transactional(readOnly = true)
-    EventEntity getEntityOrThrow(Long id) {
-        return eventRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
-    }
-
-    @Transactional
-    EventEntity getEventByIdForUpdate(Long id) {
-        return eventRepository.getEventByIdForUpdate(id)
-                .orElseThrow(() -> new EntityNotFoundException("Event entity with id: %s not found".formatted(id)));
     }
 }

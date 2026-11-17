@@ -7,7 +7,7 @@ import dev.sorokin.eventmanager.entity.EventEntity;
 import dev.sorokin.eventmanager.model.EventStatus;
 import dev.sorokin.eventmanager.repository.EventRepository;
 import dev.sorokin.eventmanager.repository.RegistrationRepository;
-import dev.sorokin.eventmanager.kafka.EventKafkaPublisherService;
+import dev.sorokin.eventmanager.service.OutboxService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -22,34 +22,39 @@ public class EventStatusScheduler {
 
     private final EventRepository eventRepository;
     private final RegistrationRepository registrationRepository;
-    private final EventKafkaPublisherService eventKafkaPublisherService;
+    private final OutboxService outboxService;
 
     @Transactional
     @Scheduled(cron = "${scheduler.event-status.cron}")
     public void updateWaitStartStatuses() {
-        List<EventEntity> entityList = eventRepository.findAllByStatusAndStartAtLessThanEqual(
+        List<EventEntity> eventEntities = eventRepository.findAllByStatusAndStartAtLessThanEqual(
                 EventStatus.WAIT_START,
                 LocalDateTime.now());
 
-        for (EventEntity entity : entityList) {
+        for (EventEntity entity : eventEntities) {
             entity.setStatus(EventStatus.STARTED);
-            publishEventStatusUpdate(entity, EventStatus.WAIT_START, EventStatus.STARTED);
+            EventChangeKafkaMessageDto message = createStatusChangeMessage(entity, EventStatus.WAIT_START, EventStatus.STARTED);
+            outboxService.saveToOutbox(message);
         }
     }
 
     @Transactional
     @Scheduled(cron = "${scheduler.event-status.cron}")
     public void updateStartedStatuses() {
-        List<EventEntity> entityList = eventRepository.findStartedToFinish(LocalDateTime.now());
+        List<EventEntity> eventEntities = eventRepository.findStartedToFinish(LocalDateTime.now());
 
-        for (EventEntity entity : entityList) {
+        for (EventEntity entity : eventEntities) {
             entity.setStatus(EventStatus.FINISHED);
-            publishEventStatusUpdate(entity, EventStatus.STARTED, EventStatus.FINISHED);
+            EventChangeKafkaMessageDto message = createStatusChangeMessage(entity, EventStatus.STARTED, EventStatus.FINISHED);
+            outboxService.saveToOutbox(message);
         }
     }
 
-    private void publishEventStatusUpdate(EventEntity entity, EventStatus oldStatus, EventStatus newStatus) {
-        eventKafkaPublisherService.publishEventChange(new EventChangeKafkaMessageDto(
+    private EventChangeKafkaMessageDto createStatusChangeMessage(
+            EventEntity entity,
+            EventStatus oldStatus,
+            EventStatus newStatus) {
+        return new EventChangeKafkaMessageDto(
                 EventType.EVENT_UPDATED,
                 entity.getId(),
                 entity.getName(),
@@ -57,6 +62,6 @@ public class EventStatusScheduler {
                 null,
                 registrationRepository.findAllUsersIdByEventId(entity.getId()),
                 List.of(new ChangeItemDto("status", oldStatus.name(), newStatus.name()))
-        ));
+        );
     }
 }

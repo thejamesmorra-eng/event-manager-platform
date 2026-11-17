@@ -26,7 +26,6 @@ spring:
       group-id: event-notificator-group
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.UUIDDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "dev.sorokin.eventcommon.kafka"
         spring.json.use.type.headers: false

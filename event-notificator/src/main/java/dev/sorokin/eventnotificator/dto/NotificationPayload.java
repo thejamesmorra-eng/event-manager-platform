@@ -10,7 +10,7 @@ public record NotificationPayload(
         UUID messageId,
         EventType eventType,
         Instant occurredAt,
-        Long changeById,
+        Long changedById,
         Long ownerId,
         String eventName,
         List<NotificationChange> changes

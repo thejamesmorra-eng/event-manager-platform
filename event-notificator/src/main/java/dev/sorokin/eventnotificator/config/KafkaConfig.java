@@ -9,6 +9,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.support.serializer.ErrorHandlingDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import java.util.Map;
@@ -28,9 +29,12 @@ public class KafkaConfig {
         JsonDeserializer<EventChangeKafkaMessageDto> valueDeserializer =
                 new JsonDeserializer<>(EventChangeKafkaMessageDto.class, objectMapper);
 
+        ErrorHandlingDeserializer<EventChangeKafkaMessageDto> errorHandlingDeserializer =
+                new ErrorHandlingDeserializer<>(valueDeserializer);
+
         DefaultKafkaConsumerFactory<UUID, EventChangeKafkaMessageDto> factory =
                 new DefaultKafkaConsumerFactory<>(props);
-        factory.setValueDeserializer(valueDeserializer);
+        factory.setValueDeserializer(errorHandlingDeserializer);
 
         return factory;
     }

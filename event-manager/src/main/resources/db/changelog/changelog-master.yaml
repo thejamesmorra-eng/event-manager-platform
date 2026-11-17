@@ -11,3 +11,5 @@ databaseChangeLog:
       file: db/changelog/changesets/0005-create-registrations-table.sql
   - include:
       file: db/changelog/changesets/0006-add-cost-to-events.sql
+  - include:
+      file: db/changelog/changesets/0007-create-outbox-events-table.sql
