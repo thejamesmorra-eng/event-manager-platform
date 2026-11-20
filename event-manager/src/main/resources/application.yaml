@@ -25,6 +25,12 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.UUIDSerializer
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      properties:
+        enable.idempotence: true
+        max.block.ms: 5000
+        request.timeout.ms: 5000
+        delivery.timeout.ms: 10000
 
   jackson:
     serialization:
@@ -59,3 +65,7 @@ scheduler:
     cron: "0 * * * * *"
   outbox-publisher:
     cron: "0 * * * * *"
+
+outbox:
+  publisher:
+    send-timeout-ms: 15000 # должен быть > spring.kafka.producer.properties.delivery.timeout.ms

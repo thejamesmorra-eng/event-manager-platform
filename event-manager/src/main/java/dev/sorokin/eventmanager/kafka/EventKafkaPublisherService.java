@@ -21,16 +21,9 @@ public class EventKafkaPublisherService {
     @Value("${kafka.topic.event-changes}")
     private String topic;
 
-    public void publishEventChange(EventChangeKafkaMessageDto message) {
+    public CompletableFuture<SendResult<UUID, EventChangeKafkaMessageDto>> publishEventChange(
+            EventChangeKafkaMessageDto message) {
         log.debug("Publish event changes: {}", message);
-        CompletableFuture<SendResult<UUID, EventChangeKafkaMessageDto>> result = kafkaTemplate.send(
-                topic, message.messageId(), message);
-        result.whenComplete((success, ex) -> {
-            if (ex != null) {
-                log.error("Failed to publish event to kafka: {}", message.messageId(), ex);
-            } else {
-                log.info("Event publishes successfully: {}", message.messageId());
-            }
-        });
+        return kafkaTemplate.send(topic, message.messageId(), message);
     }
 }
