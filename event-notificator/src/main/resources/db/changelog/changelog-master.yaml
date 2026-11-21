@@ -5,3 +5,5 @@ databaseChangeLog:
       file: db/changelog/changesets/0002-create-notifications-table.sql
   - include:
       file: db/changelog/changesets/0003-add-event-name-notification-event-payloads-table.sql
+  - include:
+      file: db/changelog/changesets/0004-add-index-to-notifications-table.sql

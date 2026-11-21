@@ -1,5 +1,6 @@
 package dev.sorokin.eventnotificator.scheduler;
 
+import dev.sorokin.eventnotificator.repository.NotificationEventPayloadRepository;
 import dev.sorokin.eventnotificator.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,15 +18,21 @@ import java.time.temporal.ChronoUnit;
 public class NotificationCleanupScheduler {
 
     private final NotificationRepository notificationRepository;
+    private final NotificationEventPayloadRepository payloadRepository;
 
     @Value("${scheduler.notification-cleanup.retention-days}")
     private long retentionDays;
 
     @Transactional
     @Scheduled(cron = "${scheduler.notification-cleanup.cron}")
-    public void cleanupOldNotifications() {
+    public void cleanupOldNotificationsAndOrphanPayloads() {
         Instant cutoffDate = Instant.now().minus(retentionDays, ChronoUnit.DAYS);
-        notificationRepository.deleteByCreatedAtBefore(cutoffDate);
-        log.info("Deleted notifications older than {} days (before {})", retentionDays, cutoffDate);
+
+        int amountDeletedNotifications = notificationRepository.deleteByCreatedAtBefore(cutoffDate);
+        log.info("Deleted {} notifications older than {} days (before {})",
+                amountDeletedNotifications, retentionDays, cutoffDate);
+
+        int amountDeletedOrphanPayloads = payloadRepository.deleteOrphanPayloads(cutoffDate);
+        log.info("Deleted {} orphan payloads", amountDeletedOrphanPayloads);
     }
 }
