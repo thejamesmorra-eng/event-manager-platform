@@ -1,0 +1,63 @@
+package dev.sorokin.eventnotificator.entity;
+
+import dev.sorokin.eventcommon.kafka.enums.EventType;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import java.time.Instant;
+import java.util.UUID;
+
+@Entity
+@Table(name = "notification_event_payloads")
+@Getter
+@Setter
+@NoArgsConstructor
+public class NotificationEventPayloadEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long payloadId;
+
+    @Column(name = "message_id", unique = true, nullable = false)
+    private UUID messageId;
+
+    @Column(name = "event_type", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private EventType eventType;
+
+    @Column(name = "event_id", nullable = false)
+    private Long eventId;
+
+    @Column(name = "event_name", nullable = false)
+    private String eventName;
+
+    @Column(name = "occurred_at", nullable = false)
+    private Instant occurredAt;
+
+    @Column(name = "changed_by_id")
+    private Long changedById;
+
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
+
+    @Column(name = "payload", nullable = false, columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    private String payload;
+
+    @PrePersist
+    private void validate() {
+        if (messageId == null ||
+                eventType == null ||
+                eventId == null ||
+                eventName == null ||
+                occurredAt == null ||
+                ownerId == null ||
+                payload == null) {
+            throw new IllegalStateException("Invalid payload entity");
+        }
+    }
+}

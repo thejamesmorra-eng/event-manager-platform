@@ -1,4 +1,4 @@
-package dev.sorokin.eventmanager.exception;
+package dev.sorokin.eventcommon.exception;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
